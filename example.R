@@ -6,7 +6,7 @@ library(GSBurden)
 #### read gene set ####
 #### text file format (table with at least 2 columns; enzid and gene set name)
 #### default separator is "\t" with header. If other separator is used, please define using parameter "sep".
-gs <- readGeneset("material/gs.table.tsv")
+gs <- readGeneset("gs.table.tsv")
 
 #### read cnvs ####
 #### any file format but need to have following information; 
