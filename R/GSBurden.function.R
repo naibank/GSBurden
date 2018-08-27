@@ -542,7 +542,7 @@ mergeLoci <- function(test.table, pvalue.column){
     test.out <- test.out[order(test.out$pvalue),]
     
     t.g <- GenomicRanges::GRanges(test.out$chr, IRanges::IRanges(test.out$start, test.out$end), "*")
-    olap.t <- data.frame(findOverlaps(t.g, t.g)) 
+    olap.t <- data.frame(IRanges::findOverlaps(t.g, t.g)) 
     olap.t <- olap.t[olap.t$queryHits != olap.t$subjectHits, ]
     olap.t$pair <- paste(pmin(olap.t$queryHits, olap.t$subjectHits), pmax(olap.t$queryHits, olap.t$subjectHits), sep=",")
     olap.t <- olap.t[!duplicated(olap.t$pair), ]
@@ -593,6 +593,6 @@ mergeLoci <- function(test.table, pvalue.column){
     
   }
   
-  message("Loci testing done!")
+  message("Loci testing done!!")
   return(test.out)
 }
