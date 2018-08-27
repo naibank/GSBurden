@@ -3,7 +3,7 @@
 #' This function to read gene set information to perform gene set burden test for CNVs and SNVs.
 #' @param pathfile path to gene set file. Either 1) A text file of two-column table; 1st column is Entrez gene ids and 2nd column is Gene set name. or 2) R object file, contain list variable. Each element is a vector contains Entrez gene ids. Gene set name is required as names of list elements.
 #' @keywords gene set, entrez gene ids, gene set analysis
-#' @export
+#' @export 
 #' @examples
 #' readGeneset('test.geneset.RData')
 readGeneset <- function(pathfile, sep="\t", header=T){
@@ -38,7 +38,7 @@ readGeneset <- function(pathfile, sep="\t", header=T){
 #' @param start a vector of start locations of CNVs
 #' @param end a vector of end locations of CNVs
 #' @param type a vector of type of CNVs i.e. c("Loss", "Gain", "Loss", "Loss")
-#' @keywords
+#' @keywords Entrez id
 #' @export
 CNVSet <- function(sample, chr, start, end, type = "-"){
   if(length(type) == 1){
@@ -64,7 +64,7 @@ CNVSet <- function(sample, chr, start, end, type = "-"){
 #' @param chr a vector of chromosome name of CNVs
 #' @param start a vector of start locations of CNVs
 #' @param end a vector of end locations of CNVs
-#' @keywords
+#' @keywords Entrez id
 #' @export
 GeneAnnotation <- function(enzid, chr, start, end, gsymbol = "-"){
   if(sd(c(length(enzid), length(chr), length(start), length(end))) != 0){
@@ -76,9 +76,9 @@ GeneAnnotation <- function(enzid, chr, start, end, gsymbol = "-"){
 
 #'
 #' This function is for internal use by other functions in the package.
-#' @param enzid
-#' @param geneset
-#' @keywords
+#' @param enzid Entrez id
+#' @param geneset geneset
+#' @keywords GSBurden
 #' @export
 getGenesetCount <- function(enzid, geneset){
   return(sapply(sapply(geneset, is.element, enzid), sum))
@@ -86,9 +86,9 @@ getGenesetCount <- function(enzid, geneset){
 
 #'
 #' This function is for internal use by other functions in the package.
-#' @param enzid
-#' @param geneset
-#' @keywords
+#' @param enzid Entrez id
+#' @param geneset geneset
+#' @keywords GSBurden
 #' @export
 getGenesetList <- function(enzid, geneset){
   gs.sum <- sapply(sapply(geneset, is.element, enzid), sum)
@@ -101,7 +101,7 @@ getGenesetList <- function(enzid, geneset){
 #' @param cnv.table CNV table
 #' @param annotation.table gene annotation table
 #' @param geneset gene set object
-#' @keywords
+#' @keywords GSBurden
 #' @export
 getCNVGSMatrix <- function(cnv.table, annotation.table, geneset){
   all.out <- data.frame()
@@ -152,7 +152,7 @@ getCNVGSMatrix <- function(cnv.table, annotation.table, geneset){
 #' @param covariates list of covariates to be used in the model
 #' @param correctCNVCount logical value to indicate whether the burden will be corrected for CNV count or not
 #' @param standardizeCoefficient logical value to indicate whether coefficient will be standardized or not
-#' @keywords
+#' @keywords GSBurden
 #' @export
 #' 
 CNVGlobalTest <- function(cnv.matrix, label, covariates, correctCNVCount = T, standardizeCoefficient = T){
@@ -217,7 +217,7 @@ CNVGlobalTest <- function(cnv.matrix, label, covariates, correctCNVCount = T, st
 #' @param covariates list of covariates to be used in the model
 #' @param correctCNVCount logical value to indicate whether the burden will be corrected for CNV count or not
 #' @param standardizeCoefficient logical value to indicate whether coefficient will be standardized or not
-#' @keywords
+#' @keywords GSBurden
 #' @export
 #' 
 CNVBurdenTest <- function(cnv.matrix, geneset, label, covariates, correctGlobalBurden = T, standardizeCoefficient = T, 
@@ -352,7 +352,7 @@ CNVBurdenTest <- function(cnv.matrix, geneset, label, covariates, correctGlobalB
 #' @param permutation logical, doing permutation FDR or not
 #' @param nperm number of permutation to be done
 #' @param nsubject minimum number of subjects with CNVs impacting the loci, required for a locus to be tested
-#' @keywords
+#' @keywords GSBurden
 #' @export
 #' 
 CNVLociTest <- function(cnv.table, cnv.matrix, annotation.table, label, covariates, geneset = list(),
@@ -373,8 +373,8 @@ CNVLociTest <- function(cnv.table, cnv.matrix, annotation.table, label, covariat
   
   if(length(geneset) != 0){
     annotation.table <- annotation.table[annotation.table$enzid %in% unlist(geneset), ]
-    map.geneset <- sapply(enzid, GSBurden::getGenesetList, geneset)
-    map.geneset <- data.frame(enzid, "geneset" = map.geneset) 
+    # map.geneset <- sapply(enzid, GSBurden::getGenesetList, geneset)
+    # map.geneset <- data.frame(enzid, "geneset" = map.geneset) 
   }
   
   if(permutation){
@@ -527,9 +527,9 @@ CNVLociTest <- function(cnv.table, cnv.matrix, annotation.table, label, covariat
 
 #'
 #' This function is for internal use by other functions in the package.
-#' @param enzid
-#' @param geneset
-#' @keywords
+#' @param test.table test result table
+#' @param pvalue.column name of column contain p-values to be used
+#' @keywords GSBurden 
 #' @export
 mergeLoci <- function(test.table, pvalue.column){
   test.table <- test.table[order(test.table[, pvalue.column]), ]
