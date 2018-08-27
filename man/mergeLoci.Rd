@@ -6,6 +6,12 @@
 \usage{
 mergeLoci(test.table, pvalue.column)
 }
+\arguments{
+\item{test.table}{test result table}
+
+\item{pvalue.column}{name of column contain p-values to be used}
+}
 \description{
 This function is for internal use by other functions in the package.
 }
+\keyword{GSBurden}

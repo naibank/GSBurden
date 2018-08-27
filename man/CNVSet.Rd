@@ -20,3 +20,5 @@ CNVSet(sample, chr, start, end, type = "-")
 \description{
 This function to get CNV in the format used by GSBurden.
 }
+\keyword{Entrez}
+\keyword{id}

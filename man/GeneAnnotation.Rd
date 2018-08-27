@@ -18,3 +18,5 @@ GeneAnnotation(enzid, chr, start, end, gsymbol = "-")
 \description{
 This function to get coordinate of gene for annotating CNVs/SNVs in the format used by GSBurden.
 }
+\keyword{Entrez}
+\keyword{id}

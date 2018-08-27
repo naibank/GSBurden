@@ -16,3 +16,4 @@ getCNVGSMatrix(cnv.table, annotation.table, geneset)
 \description{
 This function is to get a matrix of gene set count by sample.
 }
+\keyword{GSBurden}

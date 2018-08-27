@@ -24,3 +24,4 @@ CNVBurdenTest(cnv.matrix, geneset, label, covariates,
 \description{
 This function is to test for geneset burden of gene count.
 }
+\keyword{GSBurden}

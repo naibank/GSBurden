@@ -21,3 +21,4 @@ CNVGlobalTest(cnv.matrix, label, covariates, correctCNVCount = T,
 \description{
 This function is to test for global burden of gene count.
 }
+\keyword{GSBurden}

@@ -29,3 +29,4 @@ CNVLociTest(cnv.table, cnv.matrix, annotation.table, label, covariates,
 \description{
 This function is for loci test.
 }
+\keyword{GSBurden}

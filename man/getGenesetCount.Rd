@@ -6,6 +6,12 @@
 \usage{
 getGenesetCount(enzid, geneset)
 }
+\arguments{
+\item{enzid}{Entrez id}
+
+\item{geneset}{geneset}
+}
 \description{
 This function is for internal use by other functions in the package.
 }
+\keyword{GSBurden}
