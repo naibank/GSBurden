@@ -337,6 +337,12 @@ CNVBurdenTest <- function(cnv.matrix, geneset, label, covariates, correctGlobalB
       test.out$permFDR[i] <- fdr
     }
   }
+  
+  test.out <- test.out[order(test.out$pvalue), ]
+  for(i in 1:nrow(test.out)){
+    test.out$permFDR <- min(test.out$permFDR[i:nrow(test.out)])
+  }
+  
   return(test.out)
 }
 
@@ -520,6 +526,11 @@ CNVLociTest <- function(cnv.table, cnv.matrix, annotation.table, label, covariat
     rownames(dt.out.merge) <- NULL
     dt.out.merge <- dt.out.merge[, c(1:7, 9:10, 8)]
     
+    dt.out.merge <- dt.out.merge[order(dt.out.merge$pvalue), ]
+    for(i in 1:nrow(dt.out.merge)){
+      dt.out.merge$permFDR <- min(dt.out.merge$permFDR[i:nrow(dt.out.merge)])
+    }
+    
     final.out <- rbind(final.out, dt.out.merge)
   }
   return(final.out)
@@ -593,6 +604,6 @@ mergeLoci <- function(test.table, pvalue.column){
     
   }
   
-  message("Loci testing done!!")
-  return(test.out)
+  message("Loci testing done!")
+  return(test.out[, c("chr", "start", "end", "type", "coefficient", "pvalue", "permFDR", "gsymbol", "enzid", "sampleid")])
 }
