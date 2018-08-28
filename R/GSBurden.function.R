@@ -524,7 +524,7 @@ CNVLociTest <- function(cnv.table, cnv.matrix, annotation.table, label, covariat
     }
     
     rownames(dt.out.merge) <- NULL
-    dt.out.merge <- dt.out.merge[, c(1:7, 9:10, 8)]
+    dt.out.merge <- dt.out.merge[, c(2:4, 6, 7, 9:10, 1, 5, 8)]
     
     dt.out.merge <- dt.out.merge[order(dt.out.merge$pvalue), ]
     for(i in 1:nrow(dt.out.merge)){
@@ -605,5 +605,5 @@ mergeLoci <- function(test.table, pvalue.column){
   }
   
   message("Loci testing done!")
-  return(test.out[, c("chr", "start", "end", "type", "coefficient", "pvalue", "permFDR", "gsymbol", "enzid", "sampleid")])
+  return(test.out)
 }
