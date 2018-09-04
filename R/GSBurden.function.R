@@ -340,7 +340,7 @@ CNVBurdenTest <- function(cnv.matrix, geneset, label, covariates, correctGlobalB
   
   test.out <- test.out[order(test.out$pvalue), ]
   for(i in 1:nrow(test.out)){
-    test.out$permFDR <- min(test.out$permFDR[i:nrow(test.out)])
+    test.out$permFDR[i] <- min(test.out$permFDR[i:nrow(test.out)])
   }
   
   return(test.out)
