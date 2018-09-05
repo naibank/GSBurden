@@ -200,8 +200,11 @@ CNVGlobalTest <- function(cnv.matrix, label, covariates, correctCNVCount = T, st
     names(ano)[length(names(ano))] <- "pvalue"
     pvalue <- ano$pvalue[2]
     coefficient <- add.model$coefficients[feature]
+    intervals <- confint(add.model)
+    upperbound <- intervals[feature, "97.5 %"]
+    lowerbound <- intervals[feature, "2.5 %"]
     
-    temp.out <- data.frame("global" = "Gene", "type" = cnvtype, "coefficient" = coefficient, "pvalue" = pvalue)
+    temp.out <- data.frame("global" = "Gene", "type" = cnvtype, "coefficient" = coefficient, lowerbound, upperbound, "pvalue" = pvalue)
     test.out <- rbind(test.out, temp.out)
   }
   
@@ -319,7 +322,8 @@ CNVBurdenTest <- function(cnv.matrix, geneset, label, covariates, correctGlobalB
           
           ano.perm <- anova(ref.perm.model, add.perm.model, test = "Chisq")
           names(ano.perm)[length(names(ano.perm))] <- "pvalue"
-          perm.test.pvalues <- rbind(perm.test.pvalues, data.frame("cnvtype" = cnvtype, "pvalue" = ano.perm$pvalue[2]))
+          coeff <- add.perm.model$coefficients[feature]
+          perm.test.pvalues <- rbind(perm.test.pvalues, data.frame("cnvtype" = cnvtype, "pvalue" = ano.perm$pvalue[2], coeff))
         }
       }
     }
@@ -332,8 +336,11 @@ CNVBurdenTest <- function(cnv.matrix, geneset, label, covariates, correctGlobalB
       rec <- test.out[i, ]
       this.perm <- perm.test.pvalues[perm.test.pvalues$cnvtype == rec$type, ]
       
-      fdr <- (sum(this.perm$pvalue <= rec$pvalue)/nrow(this.perm))/
-        (sum(test.out$pvalue[test.out$type == rec$type] <= rec$pvalue)/nrow(test.out[test.out$type == rec$type,]))
+      actual <- sum(test.out$pvalue[test.out$type == rec$type] >= rec$pvalue)/nrow(test.out[test.out$type == rec$type,])
+      perm <- sum(this.perm$pvalue >= rec$pvalue)/nrow(this.perm)
+      
+      fdr <- ifelse(perm/actual > 1, 1, perm/actual)
+
       test.out$permFDR[i] <- fdr
     }
   }
