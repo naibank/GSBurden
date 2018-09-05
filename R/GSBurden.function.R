@@ -535,7 +535,7 @@ CNVLociTest <- function(cnv.table, cnv.matrix, annotation.table, label, covariat
     
     dt.out.merge <- dt.out.merge[order(dt.out.merge$pvalue), ]
     for(i in 1:nrow(dt.out.merge)){
-      dt.out.merge$permFDR <- min(dt.out.merge$permFDR[i:nrow(dt.out.merge)])
+      dt.out.merge$permFDR[i] <- min(dt.out.merge$permFDR[i:nrow(dt.out.merge)])
     }
     
     final.out <- rbind(final.out, dt.out.merge)
