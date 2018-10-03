@@ -138,6 +138,8 @@ getCNVGSMatrix <- function(cnv.table, annotation.table, geneset){
     }else{
       all.out <- merge(all.out, dt.out, by = "sample", all = T)
     }
+
+    all.out[is.na(all.out)] <- 0
   }
   
   message("Transform gene set count matrix successfully")
