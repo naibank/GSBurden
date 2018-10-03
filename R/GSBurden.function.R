@@ -288,7 +288,7 @@ CNVBurdenTest <- function(cnv.matrix, geneset, label, covariates, correctGlobalB
       ref.term <- sprintf("%s ~ %s", label, paste(this.covariates, collapse = " + "))
       add.term <- sprintf("%s + %s", ref.term, feature)
       
-      if(standardizeCoefficient){
+      if(standardizeCoefficient & mean(cnv.matrix[, feature]) != 0 & sd(cnv.matrix[, feature]) != 0){
         cnv.matrix[, feature] <- scale(cnv.matrix[, feature])
       }
       
