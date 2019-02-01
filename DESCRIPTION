@@ -3,7 +3,7 @@ Title: A tool for rare CNVs global burden and gene-set burden analysis
 Version: 0.0.0.9000
 Authors@R: person("Worrawat", "Engchuan", email = "bank.engchuan@sickkids.ca", role = c("aut", "cre"))
 Description: This package provide functions to import CNVs, annotate, and do gene set burden test by either logistic regression all linear regression.
-Depends: R (>= 3.5.0)
+Depends: R (>= 3.4.0)
 License: NA
 Encoding: UTF-8
 LazyData: true
