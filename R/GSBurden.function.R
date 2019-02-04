@@ -304,8 +304,12 @@ CNVBurdenTest <- function(cnv.matrix, geneset, label, covariates, correctGlobalB
       names(ano)[length(names(ano))] <- "pvalue"
       pvalue <- ano$pvalue[2]
       coefficient <- add.model$coefficients[feature]
+      conf <- confint(add.model)
+      coeff.l <- conf[feature, 1]
+      coeff.u <- conf[feature, 2]
       
-      temp.out <- data.frame("geneset" = this.gs, "type" = cnvtype, "coefficient" = coefficient, "pvalue" = pvalue)
+      temp.out <- data.frame("geneset" = this.gs, "type" = cnvtype, "coefficient" = coefficient, 
+                             "coeff.upper" = coeff.u, "coeff.lower" = coeff.l, "pvalue" = pvalue)
       test.out <- rbind(test.out, temp.out)
       
       if(permutation){
