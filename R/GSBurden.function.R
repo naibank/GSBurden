@@ -108,13 +108,14 @@ getCNVGSMatrix <- function(cnv.table, annotation.table, geneset){
   cnvtypes <- unique(cnv.table$type)
   for(cnvtype in cnvtypes){
     this.cnv.table <- cnv.table[cnv.table$type == cnvtype, ]
-    cnvCount <- table(this.cnv.table$sample)
     cnv.g <- GenomicRanges::GRanges(this.cnv.table$chr, IRanges::IRanges(this.cnv.table$start, this.cnv.table$end), "*")
     annotation.g <- GenomicRanges::GRanges(annotation.table$chr, IRanges::IRanges(annotation.table$start, annotation.table$end), "*")
     
     olap <- data.frame(IRanges::findOverlaps(cnv.g, annotation.g))
     olap$sample <- this.cnv.table$sample[olap$queryHits]
     olap$enzid <- annotation.table$enzid[olap$subjectHits]
+    
+    cnvCount <- table(this.cnv.table$sample[unique(olap$queryHits)])
     
     olap <- unique(olap[, c("sample", "enzid")])
     geneCount <- table(olap$sample)
