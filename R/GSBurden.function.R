@@ -147,7 +147,16 @@ getCNVGSMatrix <- function(cnv.table, annotation.table, geneset){
   return(all.out)
 }
 
-getCNVDupGSMatrix <- function(this.cnv.table, annotation.table, appris.table, geneset){
+#'
+#' This function is to get a matrix of gene set count by sample but separate duplication by disruption.
+#' @param cnv.table CNV table
+#' @param annotation.table gene annotation table
+#' @param appris.table appris principal isoform
+#' @param geneset gene set object
+#' @keywords GSBurden Separate duplication by disruption
+#' @export
+getCNVDupGSMatrix <- function(cnv.table, annotation.table, appris.table, geneset){
+  this.cnv.table <- cnv.table
   all.out <- data.frame()
   cnv.g <- GenomicRanges::GRanges(this.cnv.table$chr, IRanges::IRanges(this.cnv.table$start, this.cnv.table$end), "*")
   annotation.g <- GenomicRanges::GRanges(annotation.table$chr, IRanges::IRanges(annotation.table$start, annotation.table$end), "*")
