@@ -147,6 +147,64 @@ getCNVGSMatrix <- function(cnv.table, annotation.table, geneset){
   return(all.out)
 }
 
+getCNVDupGSMatrix <- function(this.cnv.table, annotation.table, appris.table, geneset){
+  all.out <- data.frame()
+  cnv.g <- GenomicRanges::GRanges(this.cnv.table$chr, IRanges::IRanges(this.cnv.table$start, this.cnv.table$end), "*")
+  annotation.g <- GenomicRanges::GRanges(annotation.table$chr, IRanges::IRanges(annotation.table$start, annotation.table$end), "*")
+  appris.g <- GenomicRanges::GRanges(appris.table$chr, IRanges::IRanges(appris.table$start, appris.table$end),"*")
+  
+  olap.appris <- data.frame(IRanges::findOverlaps(cnv.g, appris.g))
+  olap.appris$size <- GenomicRanges::width(GenomicRanges::pintersect(cnv.g[olap.appris$queryHits], 
+                                                                     appris.g[olap.appris$subjectHits]))
+  olap.appris$possible.size <- GenomicRanges::width(appris.g[olap.appris$subjectHits])
+  #olap.appris.nodis <- olap.appris[olap.appris$size >= olap.appris$possible.size, ]
+  olap.appris <- olap.appris[olap.appris$size < olap.appris$possible.size, ]
+  
+  olap <- data.frame(IRanges::findOverlaps(cnv.g, annotation.g))
+  
+  for(i in c("NoDisruptDup", "DisruptDup")){
+    if(i == "NoDisruptDup"){
+      th.olap <- olap[!olap$queryHits %in% olap.appris$queryHits, ]
+      info.table <- annotation.table
+    }else{
+      th.olap <- olap.appris
+      info.table <- appris.table
+      
+    }
+    
+    th.olap$sample <- this.cnv.table$sample[th.olap$queryHits]
+    cnvCount <- table(th.olap$sample[!duplicated(th.olap$queryHits)])
+    
+    th.olap$sample <- this.cnv.table$sample[th.olap$queryHits]
+    th.olap$enzid <- info.table$enzid[th.olap$subjectHits]
+    
+    th.olap <- unique(th.olap[, c("sample", "enzid")])
+    geneCount <- table(th.olap$sample)
+    temp <- aggregate(enzid ~ sample, th.olap, c)
+    gsMatrix <- data.frame(t(sapply(temp$enzid, getGenesetCount, geneset)))
+    gsMatrix$sample <- temp$sample
+    
+    th.cnvCount <- data.frame(sample = names(cnvCount), cnv_count = as.numeric(cnvCount))
+    th.geneCount <- data.frame(sample = names(geneCount), gene_count = as.numeric(geneCount))
+    
+    dt.out <- merge(th.cnvCount, th.geneCount, by = "sample", all.x = T)
+    dt.out <- merge(dt.out, gsMatrix, by = "sample", all.x = T)
+    dt.out[is.na(dt.out)] <- 0
+    
+    names(dt.out)[-1] <- paste(names(dt.out)[-1], i, sep="_")
+    
+    if(nrow(all.out) == 0){
+      all.out <- dt.out
+    }else{
+      all.out <- merge(all.out, dt.out, by = "sample", all = T)
+    }
+    
+    all.out[is.na(all.out)] <- 0
+  }
+  
+  message("Transform gene set count matrix successfully")
+  return(all.out)
+}
 
 #'
 #' This function is to test for global burden of gene count.
@@ -357,7 +415,9 @@ CNVBurdenTest <- function(cnv.matrix, geneset, label, covariates, correctGlobalB
     test.out$permFDR[i] <- min(test.out$permFDR[i:nrow(test.out)])
   }
   
-  return(test.out)
+  list.out <- list(test.out, perm.test.pvalues)
+  names(list.out) <- c("Test", "Permutation.Test")
+  return(list.out)
 }
 
 
