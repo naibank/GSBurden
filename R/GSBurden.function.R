@@ -410,7 +410,7 @@ CNVBurdenTest <- function(cnv.matrix, geneset, label, covariates, correctGlobalB
       rec <- test.out[i, ]
 
       actual <- sum(test.out$pvalue <= rec$pvalue, na.rm = T)/sum(!is.na(test.out$pvalue))
-      perm <- sum(this.perm$pvalue <= rec$pvalue, na.rm = T)/sum(!is.na(this.perm$pvalue))
+      perm <- sum(perm.test.pvalues$pvalue <= rec$pvalue, na.rm = T)/sum(!is.na(perm.test.pvalues$pvalue))
       
       fdr <- ifelse(perm/actual > 1, 1, perm/actual)
 
