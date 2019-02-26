@@ -151,23 +151,37 @@ getCNVGSMatrix <- function(cnv.table, annotation.table, geneset){
 #' This function is to get a matrix of gene set count by sample but separate duplication by disruption.
 #' @param cnv.table CNV table
 #' @param annotation.table gene annotation table
-#' @param appris.table appris principal isoform
+#' @param appris.cds appris principal isoform cds. Each row represent an exon but only coding sequence.
+#' @param appris.nodisrupt appris principal isoform promoter and stop codon.
 #' @param geneset gene set object
 #' @keywords GSBurden Separate duplication by disruption
 #' @export
-getCNVDupGSMatrix <- function(cnv.table, annotation.table, appris.table, geneset){
+getCNVDupGSMatrix <- function(cnv.table, annotation.table, appris.cds, appris.nodisrupt, geneset){
   this.cnv.table <- cnv.table
   all.out <- data.frame()
   cnv.g <- GenomicRanges::GRanges(this.cnv.table$chr, IRanges::IRanges(this.cnv.table$start, this.cnv.table$end), "*")
   annotation.g <- GenomicRanges::GRanges(annotation.table$chr, IRanges::IRanges(annotation.table$start, annotation.table$end), "*")
-  appris.g <- GenomicRanges::GRanges(appris.table$chr, IRanges::IRanges(appris.table$start, appris.table$end),"*")
+  appris.cds.g <- GenomicRanges::GRanges(appris.cds$chr, IRanges::IRanges(appris.cds$start, appris.cds$end),"*")
+  appris.nodisrupt.g <- GenomicRanges::GRanges(appris.nodisrupt$chr, IRanges::IRanges(appris.nodisrupt$start, appris.nodisrupt$end),"*")
   
-  olap.appris <- data.frame(IRanges::findOverlaps(cnv.g, appris.g))
-  olap.appris$size <- GenomicRanges::width(GenomicRanges::pintersect(cnv.g[olap.appris$queryHits], 
-                                                                     appris.g[olap.appris$subjectHits]))
-  olap.appris$possible.size <- GenomicRanges::width(appris.g[olap.appris$subjectHits])
-  #olap.appris.nodis <- olap.appris[olap.appris$size >= olap.appris$possible.size, ]
-  olap.appris <- olap.appris[olap.appris$size < olap.appris$possible.size, ]
+  olap.nodisrupt <- data.frame(IRanges::findOverlaps(cnv.g, appris.nodisrupt.g))
+  olap.nodisrupt$elementsize <- appris.nodisrupt$end[olap.nodisrupt$subjectHits]-appris.nodisrupt$start[olap.nodisrupt$subjectHits] + 1
+  olap.nodisrupt$olapsize <- IRanges::width(IRanges::pintersect(cnv.g[olap.nodisrupt$queryHits], appris.nodisrupt.g[olap.nodisrupt$subjectHits]))
+  olap.nodisrupt <- olap.nodisrupt[olap.nodisrupt$elementsize == olap.nodisrupt$olapsize, ]
+  olap.nodisrupt$gsymbol <- appris.nodisrupt$gsymbol[olap.nodisrupt$subjectHits]
+  olap.nodisrupt$key <- paste(olap.nodisrupt$queryHits, olap.nodisrupt$gsymbol, sep=":")
+  
+  olap.appris <- data.frame(IRanges::findOverlaps(cnv.g, appris.cds.g))
+  olap.appris$gsymbol <- appris.cds$gsymbol[olap.appris$subjectHits]
+  olap.appris$key <- paste(olap.appris$queryHits, olap.appris$gsymbol, sep=":")
+  olap.appris <- olap.appris[!olap.appris$key %in% olap.nodisrupt$key, ]
+  
+  
+  # olap.appris$size <- GenomicRanges::width(GenomicRanges::pintersect(cnv.g[olap.appris$queryHits], 
+  #                                                                    appris.g[olap.appris$subjectHits]))
+  # olap.appris$possible.size <- GenomicRanges::width(appris.g[olap.appris$subjectHits])
+  # olap.appris.nodis <- olap.appris[olap.appris$size >= olap.appris$possible.size, ]
+  # olap.appris <- olap.appris[olap.appris$size < olap.appris$possible.size, ]
   
   olap <- data.frame(IRanges::findOverlaps(cnv.g, annotation.g))
   
@@ -175,17 +189,14 @@ getCNVDupGSMatrix <- function(cnv.table, annotation.table, appris.table, geneset
     if(i == "NoDisruptDup"){
       th.olap <- olap[!olap$queryHits %in% olap.appris$queryHits, ]
       info.table <- annotation.table
+      th.olap$enzid <- info.table$enzid[th.olap$subjectHits]
     }else{
       th.olap <- olap.appris
-      info.table <- appris.table
-      
+      th.olap <- merge(th.olap, annotation.table[, c("gsymbol", "enzid")], by = "gsymbol", all.x = T)
     }
     
     th.olap$sample <- this.cnv.table$sample[th.olap$queryHits]
     cnvCount <- table(th.olap$sample[!duplicated(th.olap$queryHits)])
-    
-    th.olap$sample <- this.cnv.table$sample[th.olap$queryHits]
-    th.olap$enzid <- info.table$enzid[th.olap$subjectHits]
     
     th.olap <- unique(th.olap[, c("sample", "enzid")])
     geneCount <- table(th.olap$sample)
@@ -408,9 +419,10 @@ CNVBurdenTest <- function(cnv.matrix, geneset, label, covariates, correctGlobalB
     test.out$permFDR <- 1
     for(i in 1:nrow(test.out)){
       rec <- test.out[i, ]
-
-      actual <- sum(test.out$pvalue <= rec$pvalue, na.rm = T)/sum(!is.na(test.out$pvalue))
-      perm <- sum(perm.test.pvalues$pvalue <= rec$pvalue, na.rm = T)/sum(!is.na(perm.test.pvalues$pvalue))
+      this.perm <- perm.test.pvalues[perm.test.pvalues$cnvtype == rec$type, ]
+      
+      actual <- sum(test.out$pvalue[test.out$type == rec$type] <= rec$pvalue)/nrow(test.out[test.out$type == rec$type,])
+      perm <- sum(this.perm$pvalue <= rec$pvalue)/nrow(this.perm)
       
       fdr <- ifelse(perm/actual > 1, 1, perm/actual)
 
@@ -418,11 +430,9 @@ CNVBurdenTest <- function(cnv.matrix, geneset, label, covariates, correctGlobalB
     }
   }
   
-  if(permutation){
-    test.out <- test.out[order(test.out$pvalue), ]
-    for(i in 1:nrow(test.out)){
-      test.out$permFDR[i] <- min(test.out$permFDR[i:nrow(test.out)])
-    }
+  test.out <- test.out[order(test.out$pvalue), ]
+  for(i in 1:nrow(test.out)){
+    test.out$permFDR[i] <- min(test.out$permFDR[i:nrow(test.out)])
   }
   
   list.out <- list(test.out, perm.test.pvalues)
