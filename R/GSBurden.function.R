@@ -176,7 +176,6 @@ getCNVDupGSMatrix <- function(cnv.table, annotation.table, appris.cds, appris.no
   olap.appris$key <- paste(olap.appris$queryHits, olap.appris$gsymbol, sep=":")
   olap.appris <- olap.appris[!olap.appris$key %in% olap.nodisrupt$key, ]
   
-  
   # olap.appris$size <- GenomicRanges::width(GenomicRanges::pintersect(cnv.g[olap.appris$queryHits], 
   #                                                                    appris.g[olap.appris$subjectHits]))
   # olap.appris$possible.size <- GenomicRanges::width(appris.g[olap.appris$subjectHits])
@@ -601,28 +600,31 @@ CNVLociTest <- function(cnv.table, cnv.matrix, annotation.table, label, covariat
     
     message("Calculate FDR ...")
     dt.out.merge <- mergeLoci(dt.out, "pvalue")
-    perm.pvalue <- c()
-    for(i in 1:nperm){
-      message(sprintf("Merging permution #%s", i))
-      perm.merge <- mergeLoci(dt.out, sprintf("perm.pvalue.n%s", i))
-      perm.pvalue <- c(perm.pvalue, perm.merge$pvalue)
-    }
     
-    dt.out.merge$permFDR <- 1
-    for(i in 1:nrow(dt.out.merge)){
-      actual <- sum(dt.out.merge$pvalue <= dt.out.merge$pvalue[i])/nrow(dt.out.merge)
-      perm <- sum(perm.pvalue <= dt.out.merge$pvalue[i])/length(perm.pvalue)
+    if(permutation){
+      perm.pvalue <- c()
+      for(i in 1:nperm){
+        message(sprintf("Merging permution #%s", i))
+        perm.merge <- mergeLoci(dt.out, sprintf("perm.pvalue.n%s", i))
+        perm.pvalue <- c(perm.pvalue, perm.merge$pvalue)
+      }
       
-      dt.out.merge$permFDR[i] <- perm/actual
-      dt.out.merge$permFDR[i] <- ifelse(dt.out.merge$permFDR[i] > 1, 1, dt.out.merge$permFDR[i])
-    }
-    
-    rownames(dt.out.merge) <- NULL
-    dt.out.merge <- dt.out.merge[, c(2:4, 6, 7, 9:10, 1, 5, 8)]
-    
-    dt.out.merge <- dt.out.merge[order(dt.out.merge$pvalue), ]
-    for(i in 1:nrow(dt.out.merge)){
-      dt.out.merge$permFDR[i] <- min(dt.out.merge$permFDR[i:nrow(dt.out.merge)])
+      dt.out.merge$permFDR <- 1
+      for(i in 1:nrow(dt.out.merge)){
+        actual <- sum(dt.out.merge$pvalue <= dt.out.merge$pvalue[i])/nrow(dt.out.merge)
+        perm <- sum(perm.pvalue <= dt.out.merge$pvalue[i])/length(perm.pvalue)
+        
+        dt.out.merge$permFDR[i] <- perm/actual
+        dt.out.merge$permFDR[i] <- ifelse(dt.out.merge$permFDR[i] > 1, 1, dt.out.merge$permFDR[i])
+      }
+      
+      rownames(dt.out.merge) <- NULL
+      dt.out.merge <- dt.out.merge[, c(2:4, 6, 7, 9:10, 1, 5, 8)]
+      
+      dt.out.merge <- dt.out.merge[order(dt.out.merge$pvalue), ]
+      for(i in 1:nrow(dt.out.merge)){
+        dt.out.merge$permFDR[i] <- min(dt.out.merge$permFDR[i:nrow(dt.out.merge)])
+      }
     }
     
     final.out <- rbind(final.out, dt.out.merge)
