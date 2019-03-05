@@ -186,9 +186,12 @@ getCNVDupGSMatrix <- function(cnv.table, annotation.table, appris.cds, appris.no
   
   for(i in c("NoDisruptDup", "DisruptDup")){
     if(i == "NoDisruptDup"){
-      th.olap <- olap[!olap$queryHits %in% olap.appris$queryHits, ]
+      th.olap <- olap #olap[!olap$queryHits %in% olap.appris$queryHits, ]
       info.table <- annotation.table
       th.olap$enzid <- info.table$enzid[th.olap$subjectHits]
+      th.olap$gsymbol <- info.table$gsymbol[th.olap$subjectHits]
+      th.olap <- th.olap[!paste(th.olap$queryHits, th.olap$gsymbol, sep=":") %in% 
+                           paste(olap.appris$queryHits, olap.appris$gsymbol, sep=":"), ]
     }else{
       th.olap <- olap.appris
       th.olap <- merge(th.olap, annotation.table[, c("gsymbol", "enzid")], by = "gsymbol", all.x = T)
