@@ -277,15 +277,17 @@ CNVGlobalTest <- function(cnv.matrix, label, covariates, correctCNVCount = T, st
     if(model == "lm"){
       ref.model <- lm(ref.term, cnv.matrix)
       add.model <- lm(add.term, cnv.matrix)
+      ano <- anova(ref.model, add.model, test = "Chisq"))
     }else if(model == "glm"){
       ref.model <- glm(ref.term, cnv.matrix, family = binomial(link = "logit"))
       add.model <- glm(add.term, cnv.matrix, family = binomial(link = "logit"))
+      ano <- anova(ref.model, add.model, test = "Chisq"))
     }else{
       ref.model <- ordinal::clm(ref.term, data = cnv.matrix)
       add.model <- ordinal::clm(add.term, data = cnv.matrix)
+      ano <- anova(ref.model, add.model))
     }
     
-    invisible(ano <- anova(ref.model, add.model, test = "Chisq"))
     names(ano)[length(names(ano))] <- "pvalue"
     pvalue <- ano$pvalue[2]
     coefficient <- add.model$coefficients[feature]
@@ -384,15 +386,17 @@ CNVBurdenTest <- function(cnv.matrix, geneset, label, covariates, correctGlobalB
       if(model == "lm"){
         ref.model <- lm(ref.term, cnv.matrix)
         add.model <- lm(add.term, cnv.matrix)
+        ano <- anova(ref.model, add.model, test = "Chisq")
       }else if(model == "glm"){
         ref.model <- glm(ref.term, cnv.matrix, family = binomial(link = "logit"))
         add.model <- glm(add.term, cnv.matrix, family = binomial(link = "logit"))
+        ano <- anova(ref.model, add.model, test = "Chisq")
       }else{
         ref.model <- ordinal::clm(ref.term, data = cnv.matrix)
         add.model <- ordinal::clm(add.term, data = cnv.matrix)
+        ano <- anova(ref.model, add.model)
       }
       
-      invisible(ano <- anova(ref.model, add.model, test = "Chisq"))
       names(ano)[length(names(ano))] <- "pvalue"
       pvalue <- ano$pvalue[2]
       coefficient <- add.model$coefficients[feature]
@@ -413,15 +417,17 @@ CNVBurdenTest <- function(cnv.matrix, geneset, label, covariates, correctGlobalB
           if(model == "lm"){
             ref.perm.model <- lm(ref.perm.term, cnv.matrix)
             add.perm.model <- lm(add.perm.term, cnv.matrix)
+            ano.perm <- anova(ref.perm.model, add.perm.model, test = "Chisq")
           }else if(model == "glm"){
             ref.perm.model <- glm(ref.perm.term, cnv.matrix, family = binomial(link = "logit"))
             add.perm.model <- glm(add.perm.term, cnv.matrix, family = binomial(link = "logit"))
+            ano.perm <- anova(ref.perm.model, add.perm.model, test = "Chisq")
           }else{
             ref.perm.model <- ordinal::clm(ref.perm.term, data = cnv.matrix)
             add.perm.model <- ordinal::clm(add.perm.term, data = cnv.matrix)
+            ano.perm <- anova(ref.perm.model, add.perm.model)
           }
           
-          invisible(ano.perm <- anova(ref.perm.model, add.perm.model, test = "Chisq"))
           names(ano.perm)[length(names(ano.perm))] <- "pvalue"
           coeff <- add.perm.model$coefficients[feature]
           perm.test.pvalues <- rbind(perm.test.pvalues, data.frame("cnvtype" = cnvtype, "pvalue" = ano.perm$pvalue[2], coeff))
@@ -569,15 +575,17 @@ CNVLociTest <- function(cnv.table, cnv.matrix, annotation.table, label, covariat
       if(model == "lm"){
         ref.model <- lm(ref.term, dt.temp)
         add.model <- lm(add.term, dt.temp)
+        ano <- anova(ref.model, add.model, test = "Chisq")
       }else if(model == "glm"){
         ref.model <- glm(ref.term, dt.temp, family = binomial(link = "logit"))
         add.model <- glm(add.term, dt.temp, family = binomial(link = "logit"))
+        ano <- anova(ref.model, add.model, test = "Chisq")
       }else{
         ref.model <- ordinal::clm(ref.term, data = dt.temp)
         add.model <- ordinal::clm(add.term, data = dt.temp)
+        ano <- anova(ref.model, add.model)
       }
             
-      invisible(ano <- anova(ref.model, add.model, test = "Chisq"))
       names(ano)[length(names(ano))] <- "pvalue"
       pvalue <- ano$pvalue[2]
       coefficient <- add.model$coefficients["gene_count"]
@@ -599,15 +607,17 @@ CNVLociTest <- function(cnv.table, cnv.matrix, annotation.table, label, covariat
           if(model == "lm"){
             ref.perm.model <- lm(ref.perm.term, dt.temp)
             add.perm.model <- lm(add.perm.term, dt.temp)
+            ano.perm <- anova(ref.perm.model, add.perm.model, test = "Chisq")
           }else if(model == "glm"){
             ref.perm.model <- glm(ref.perm.term, dt.temp, family = binomial(link = "logit"))
             add.perm.model <- glm(add.perm.term, dt.temp, family = binomial(link = "logit"))
+            ano.perm <- anova(ref.perm.model, add.perm.model, test = "Chisq")
           }else{
             ref.perm.model <- ordinal::clm(ref.perm.term, data = dt.temp)
             add.perm.model <- ordinal::clm(add.perm.term, data = dt.temp)
+            ano.perm <- anova(ref.perm.model, add.perm.model)
           }
           
-          invisible(ano.perm <- anova(ref.perm.model, add.perm.model, test = "Chisq"))
           names(ano.perm)[length(names(ano.perm))] <- "pvalue"
           temp.out[, sprintf("perm.pvalue.n%s", iperm)] <- ano.perm$pvalue[2]
         }
