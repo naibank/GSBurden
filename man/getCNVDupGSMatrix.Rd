@@ -4,14 +4,17 @@
 \alias{getCNVDupGSMatrix}
 \title{This function is to get a matrix of gene set count by sample but separate duplication by disruption.}
 \usage{
-getCNVDupGSMatrix(cnv.table, annotation.table, appris.table, geneset)
+getCNVDupGSMatrix(cnv.table, annotation.table, appris.cds,
+  appris.nodisrupt, geneset)
 }
 \arguments{
 \item{cnv.table}{CNV table}
 
 \item{annotation.table}{gene annotation table}
 
-\item{appris.table}{appris principal isoform}
+\item{appris.cds}{appris principal isoform cds. Each row represent an exon but only coding sequence.}
+
+\item{appris.nodisrupt}{appris principal isoform promoter and stop codon.}
 
 \item{geneset}{gene set object}
 }

@@ -5,7 +5,8 @@
 \title{This function is for loci test.}
 \usage{
 CNVLociTest(cnv.table, cnv.matrix, annotation.table, label, covariates,
-  geneset = list(), permutation = T, nperm = 100, nsubject = 3)
+  geneset = list(), permutation = T, nperm = 100, nsubject = 3,
+  BiasedUrn = F)
 }
 \arguments{
 \item{cnv.table}{CNV table}
@@ -25,6 +26,8 @@ CNVLociTest(cnv.table, cnv.matrix, annotation.table, label, covariates,
 \item{nperm}{number of permutation to be done}
 
 \item{nsubject}{minimum number of subjects with CNVs impacting the loci, required for a locus to be tested}
+
+\item{BiasedUrn}{logical value to indicate whether BaisedUrn will be used to permute label or not}
 }
 \description{
 This function is for loci test.

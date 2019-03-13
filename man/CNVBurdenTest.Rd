@@ -6,7 +6,7 @@
 \usage{
 CNVBurdenTest(cnv.matrix, geneset, label, covariates,
   correctGlobalBurden = T, standardizeCoefficient = T,
-  permutation = T, nperm = 100)
+  permutation = T, nperm = 100, BiasedUrn = F)
 }
 \arguments{
 \item{cnv.matrix}{CNV table containing samples' outcome, gene count, covariates (optional) and cnv count (optional)}
@@ -17,9 +17,15 @@ CNVBurdenTest(cnv.matrix, geneset, label, covariates,
 
 \item{covariates}{list of covariates to be used in the model}
 
+\item{correctGlobalBurden}{logical value to indicate whether the burden will be corrected for CNV count or not}
+
 \item{standardizeCoefficient}{logical value to indicate whether coefficient will be standardized or not}
 
-\item{correctCNVCount}{logical value to indicate whether the burden will be corrected for CNV count or not}
+\item{permutation}{logical value to indicate whether permutation is required or not}
+
+\item{nperm}{numeric value to indicate number of iterations in permutation}
+
+\item{BiasedUrn}{logical value to indicate whether BaisedUrn will be used to permute label or not}
 }
 \description{
 This function is to test for geneset burden of gene count.

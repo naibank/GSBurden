@@ -14,6 +14,8 @@ GeneAnnotation(enzid, chr, start, end, gsymbol = "-")
 \item{start}{a vector of start locations of CNVs}
 
 \item{end}{a vector of end locations of CNVs}
+
+\item{gsymbol}{a vector of Gene symbols}
 }
 \description{
 This function to get coordinate of gene for annotating CNVs/SNVs in the format used by GSBurden.
