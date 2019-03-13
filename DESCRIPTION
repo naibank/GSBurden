@@ -1,10 +1,17 @@
 Package: GSBurden
-Title: What the Package Does (one line, title case)
-Version: 0.0.0.9000
-Authors@R: person("First", "Last", email = "first.last@example.com", role = c("aut", "cre"))
-Description: What the package does (one paragraph).
+Title: Gene-set enrichment analysis of human variants (CNVs, SNVs and Indels)
+Version: 1.0.1
+Authors@R: person("Worrawat", "Engchuan", email = "worrawat.engchuan@sickkids.ca", role = c("aut", "cre"))
+Description: GSBurden is an R package for gene-set enrichment analysis of human variants (CNVs, SNVs and Indels). 
+    The package offers tools to do global burden analysis (testing of number of genes impacted by CNVs), 
+    gene-set burden analysis (testing of number of genes in a gene-set) and loci testing (testing of association loci).
 Depends: R (>= 3.4.4)
-License: What license is it under?
+Imports:
+    GenomicRanges (>= 1.30.3),
+    BiasedUrn (>= 1.07),
+    MASS (>= 7.3-49)
+    
+License: GPL-2
 Encoding: UTF-8
 LazyData: true
 RoxygenNote: 6.1.1
