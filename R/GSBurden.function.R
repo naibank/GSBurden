@@ -285,7 +285,7 @@ CNVGlobalTest <- function(cnv.matrix, label, covariates, correctCNVCount = T, st
       add.model <- ordinal::clm(add.term, data = cnv.matrix)
     }
     
-    suppressWarnings({ano <- anova(ref.model, add.model, test = "Chisq")})
+    invisible(ano <- anova(ref.model, add.model, test = "Chisq"))
     names(ano)[length(names(ano))] <- "pvalue"
     pvalue <- ano$pvalue[2]
     coefficient <- add.model$coefficients[feature]
@@ -392,7 +392,7 @@ CNVBurdenTest <- function(cnv.matrix, geneset, label, covariates, correctGlobalB
         add.model <- ordinal::clm(add.term, data = cnv.matrix)
       }
       
-      suppressWarnings({ano <- anova(ref.model, add.model, test = "Chisq")})
+      invisible(ano <- anova(ref.model, add.model, test = "Chisq"))
       names(ano)[length(names(ano))] <- "pvalue"
       pvalue <- ano$pvalue[2]
       coefficient <- add.model$coefficients[feature]
@@ -421,7 +421,7 @@ CNVBurdenTest <- function(cnv.matrix, geneset, label, covariates, correctGlobalB
             add.perm.model <- ordinal::clm(add.perm.term, data = cnv.matrix)
           }
           
-          suppressWarnings({ano.perm <- anova(ref.perm.model, add.perm.model, test = "Chisq")})
+          invisible(ano.perm <- anova(ref.perm.model, add.perm.model, test = "Chisq"))
           names(ano.perm)[length(names(ano.perm))] <- "pvalue"
           coeff <- add.perm.model$coefficients[feature]
           perm.test.pvalues <- rbind(perm.test.pvalues, data.frame("cnvtype" = cnvtype, "pvalue" = ano.perm$pvalue[2], coeff))
@@ -577,7 +577,7 @@ CNVLociTest <- function(cnv.table, cnv.matrix, annotation.table, label, covariat
         add.model <- ordinal::clm(add.term, data = dt.temp)
       }
             
-      suppressWarnings({ano <- anova(ref.model, add.model, test = "Chisq")})
+      invisible(ano <- anova(ref.model, add.model, test = "Chisq"))
       names(ano)[length(names(ano))] <- "pvalue"
       pvalue <- ano$pvalue[2]
       coefficient <- add.model$coefficients["gene_count"]
@@ -607,7 +607,7 @@ CNVLociTest <- function(cnv.table, cnv.matrix, annotation.table, label, covariat
             add.perm.model <- ordinal::clm(add.perm.term, data = dt.temp)
           }
           
-          suppressWarnings({ano.perm <- anova(ref.perm.model, add.perm.model, test = "Chisq")})
+          invisible(ano.perm <- anova(ref.perm.model, add.perm.model, test = "Chisq"))
           names(ano.perm)[length(names(ano.perm))] <- "pvalue"
           temp.out[, sprintf("perm.pvalue.n%s", iperm)] <- ano.perm$pvalue[2]
         }
