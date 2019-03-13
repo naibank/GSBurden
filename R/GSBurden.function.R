@@ -309,11 +309,12 @@ CNVGlobalTest <- function(cnv.matrix, label, covariates, correctCNVCount = T, st
 #' @param covariates list of covariates to be used in the model
 #' @param correctCNVCount logical value to indicate whether the burden will be corrected for CNV count or not
 #' @param standardizeCoefficient logical value to indicate whether coefficient will be standardized or not
+#' @param BiasedUrn logical value to indicate whether BaisedUrn will be used to permute label or not
 #' @keywords GSBurden
 #' @export
 #' 
 CNVBurdenTest <- function(cnv.matrix, geneset, label, covariates, correctGlobalBurden = T, standardizeCoefficient = T, 
-                          permutation = T, nperm = 100){
+                          permutation = T, nperm = 100, BiasedUrn = F){
   
   distinct.prefixes <- names(cnv.matrix)[grep(names(geneset)[1], names(cnv.matrix))]
   distinct.prefixes <- gsub(sprintf("%s_", names(geneset)[1]), "", distinct.prefixes)
@@ -335,7 +336,7 @@ CNVBurdenTest <- function(cnv.matrix, geneset, label, covariates, correctGlobalB
   if(permutation){
     ref.term <- sprintf("%s ~ %s", label, paste(covariates, collapse = " + "))
     message(sprintf("Permuting sample labels for %s times", nperm))
-    if(model == "glm"){
+    if(BiasedUrn){
       lm.odds <- glm(ref.term, cnv.matrix, family = binomial (link = "logit"))
       d.odds <- exp(lm.odds$linear.predictors)
 
@@ -343,17 +344,7 @@ CNVBurdenTest <- function(cnv.matrix, geneset, label, covariates, correctGlobalB
       n.all <- length(cnv.matrix[, label])
       
       perm.hg <- BiasedUrn::rMFNCHypergeo(nran = nperm, m = rep(1, n.all), n = n.case, odds = d.odds)
-    }else if(model == "clm"){
-      lm.odds <- ordinal::clm(ref.term, data = cnv.matrix)
-      d.odds <- exp(predict(lm.odds, cnv.matrix, type="linear.predictor")$eta1)
-      
-      n.case <- sum(cnv.matrix[, label])
-      n.all <- length(cnv.matrix[, label])
-      
-      perm.hg <- BiasedUrn::rMFNCHypergeo(nran = nperm, m = rep(1, n.all), n = n.case, odds = d.odds)
     }else{
-      lm.odds <- lm(ref.term, cnv.matrix)
-      
       perm.hg <- data.frame(1:nrow(cnv.matrix), nrow(cnv.matrix):1)
       for(i in 1:nperm){
         permuted <- sample(cnv.matrix[, label])
@@ -477,11 +468,12 @@ CNVBurdenTest <- function(cnv.matrix, geneset, label, covariates, correctGlobalB
 #' @param permutation logical, doing permutation FDR or not
 #' @param nperm number of permutation to be done
 #' @param nsubject minimum number of subjects with CNVs impacting the loci, required for a locus to be tested
+#' @param BiasedUrn logical value to indicate whether BaisedUrn will be used to permute label or not
 #' @keywords GSBurden
 #' @export
 #' 
 CNVLociTest <- function(cnv.table, cnv.matrix, annotation.table, label, covariates, geneset = list(),
-                        permutation = T, nperm = 100, nsubject = 3){
+                        permutation = T, nperm = 100, nsubject = 3, BiasedUrn = F){
   cnvtypes <- unique(cnv.table$type)
   all.cnv.table <- cnv.table
   model = "lm"
@@ -508,7 +500,7 @@ CNVLociTest <- function(cnv.table, cnv.matrix, annotation.table, label, covariat
   if(permutation){
     ref.term <- sprintf("%s ~ %s", label, paste(covariates, collapse = " + "))
     message(sprintf("Permuting sample labels for %s times", nperm))
-    if(model == "glm"){
+    if(BiasedUrn){
       lm.odds <- glm(ref.term, cnv.matrix, family = binomial (link = "logit"))
       d.odds <- exp(lm.odds$linear.predictors)
       
@@ -516,17 +508,8 @@ CNVLociTest <- function(cnv.table, cnv.matrix, annotation.table, label, covariat
       n.all <- length(cnv.matrix[, label])
       
       perm.hg <- BiasedUrn::rMFNCHypergeo(nran = nperm, m = rep(1, n.all), n = n.case, odds = d.odds)
-    }else if(model == "clm"){
-      lm.odds <- ordinal::clm(ref.term, data = cnv.matrix)
-      d.odds <- exp(predict(lm.odds, cnv.matrix, type="linear.predictor")$eta1)
-      
-      n.case <- sum(cnv.matrix[, label])
-      n.all <- length(cnv.matrix[, label])
-      
-      perm.hg <- BiasedUrn::rMFNCHypergeo(nran = nperm, m = rep(1, n.all), n = n.case, odds = d.odds)
     }else{
-      lm.odds <- lm(ref.term, cnv.matrix)
-      
+
       perm.hg <- data.frame(1:nrow(cnv.matrix), nrow(cnv.matrix):1)
       for(i in 1:nperm){
         permuted <- sample(cnv.matrix[, label])
