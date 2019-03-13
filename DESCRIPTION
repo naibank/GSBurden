@@ -9,7 +9,8 @@ Depends: R (>= 3.3)
 Imports:
     GenomicRanges (>= 1.30.3),
     BiasedUrn (>= 1.07),
-    MASS (>= 7.3-49)
+    MASS (>= 7.3-49),
+    ordinal (>= 2018.8-25)
     
 License: GPL-2
 Encoding: UTF-8
