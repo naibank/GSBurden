@@ -250,8 +250,11 @@ CNVGlobalTest <- function(cnv.matrix, label, covariates, correctCNVCount = T, st
   }else if(is.numeric(cnv.matrix[, label])){
     message("continuous outcome variable detected. Linear regression is being done ...")
     model = "lm"
+  }else if(is.factor(cnv.matrix[, label])){
+    message("ordinal outcome variable detected. Linear regression is being done ...")
+    model = "polr"
   }else{
-    stop("Non dichotomous or continuous outcome variable detected. The burden test cannot be run")
+    stop("Non dichotomous or continuous or ordinal outcome variable detected. The burden test cannot be run")
   }
   
   test.out <- data.frame()
@@ -274,9 +277,12 @@ CNVGlobalTest <- function(cnv.matrix, label, covariates, correctCNVCount = T, st
     if(model == "lm"){
       ref.model <- lm(ref.term, cnv.matrix)
       add.model <- lm(add.term, cnv.matrix)
-    }else{
+    }else if(model == "lm"){
       ref.model <- glm(ref.term, cnv.matrix, family = binomial(link = "logit"))
       add.model <- glm(add.term, cnv.matrix, family = binomial(link = "logit"))
+    }else{
+      ref.model <- ordinal::clm(ref.term, data = cnv.matrix)
+      add.model <- ordinal::clm(add.term, data = cnv.matrix)
     }
     
     ano <- anova(ref.model, add.model, test = "Chisq")
