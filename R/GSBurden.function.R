@@ -252,7 +252,7 @@ CNVGlobalTest <- function(cnv.matrix, label, covariates, correctCNVCount = T, st
     model = "lm"
   }else if(is.factor(cnv.matrix[, label])){
     message("ordinal outcome variable detected. Linear regression is being done ...")
-    model = "polr"
+    model = "clm"
   }else{
     stop("Non dichotomous or continuous or ordinal outcome variable detected. The burden test cannot be run")
   }
@@ -277,7 +277,7 @@ CNVGlobalTest <- function(cnv.matrix, label, covariates, correctCNVCount = T, st
     if(model == "lm"){
       ref.model <- lm(ref.term, cnv.matrix)
       add.model <- lm(add.term, cnv.matrix)
-    }else if(model == "lm"){
+    }else if(model == "glm"){
       ref.model <- glm(ref.term, cnv.matrix, family = binomial(link = "logit"))
       add.model <- glm(add.term, cnv.matrix, family = binomial(link = "logit"))
     }else{
@@ -325,6 +325,9 @@ CNVBurdenTest <- function(cnv.matrix, geneset, label, covariates, correctGlobalB
   }else if(is.numeric(cnv.matrix[, label])){
     message("continuous outcome variable detected. Linear regression is being done ...")
     model = "lm"
+  }else if(is.factor(cnv.matrix[, label])){
+    message("ordinal outcome variable detected. Linear regression is being done ...")
+    model = "clm"
   }else{
     stop("Non dichotomous or continuous outcome variable detected. The burden test cannot be run")
   }
@@ -336,6 +339,14 @@ CNVBurdenTest <- function(cnv.matrix, geneset, label, covariates, correctGlobalB
       lm.odds <- glm(ref.term, cnv.matrix, family = binomial (link = "logit"))
       d.odds <- exp(lm.odds$linear.predictors)
 
+      n.case <- sum(cnv.matrix[, label])
+      n.all <- length(cnv.matrix[, label])
+      
+      perm.hg <- BiasedUrn::rMFNCHypergeo(nran = nperm, m = rep(1, n.all), n = n.case, odds = d.odds)
+    }else if(model == "clm"){
+      lm.odds <- ordinal::clm(ref.term, data = cnv.matrix)
+      d.odds <- exp(lm.odds$linear.predictors)
+      
       n.case <- sum(cnv.matrix[, label])
       n.all <- length(cnv.matrix[, label])
       
@@ -382,9 +393,12 @@ CNVBurdenTest <- function(cnv.matrix, geneset, label, covariates, correctGlobalB
       if(model == "lm"){
         ref.model <- lm(ref.term, cnv.matrix)
         add.model <- lm(add.term, cnv.matrix)
-      }else{
+      }else if(model == "glm"){
         ref.model <- glm(ref.term, cnv.matrix, family = binomial(link = "logit"))
         add.model <- glm(add.term, cnv.matrix, family = binomial(link = "logit"))
+      }else{
+        ref.model <- ordinal::clm(ref.term, data = cnv.matrix)
+        add.model <- ordinal::clm(add.term, data = cnv.matrix)
       }
       
       ano <- anova(ref.model, add.model, test = "Chisq")
@@ -408,9 +422,12 @@ CNVBurdenTest <- function(cnv.matrix, geneset, label, covariates, correctGlobalB
           if(model == "lm"){
             ref.perm.model <- lm(ref.perm.term, cnv.matrix)
             add.perm.model <- lm(add.perm.term, cnv.matrix)
-          }else{
+          }else if(model == "glm"){
             ref.perm.model <- glm(ref.perm.term, cnv.matrix, family = binomial(link = "logit"))
             add.perm.model <- glm(add.perm.term, cnv.matrix, family = binomial(link = "logit"))
+          }else{
+            ref.perm.model <- clm(ref.perm.term, data = cnv.matrix)
+            add.perm.model <- clm(add.perm.term, data = cnv.matrix)
           }
           
           ano.perm <- anova(ref.perm.model, add.perm.model, test = "Chisq")
@@ -474,6 +491,9 @@ CNVLociTest <- function(cnv.table, cnv.matrix, annotation.table, label, covariat
   }else if(is.numeric(cnv.matrix[, label])){
     message("continuous outcome variable detected. Linear regression is being done ...")
     model = "lm"
+  }else if(is.factor(cnv.matrix[, label])){
+    message("ordinal outcome variable detected. Linear regression is being done ...")
+    model = "clm"
   }else{
     stop("Non dichotomous or continuous outcome variable detected. The burden test cannot be run")
   }
@@ -490,6 +510,14 @@ CNVLociTest <- function(cnv.table, cnv.matrix, annotation.table, label, covariat
     message(sprintf("Permuting sample labels for %s times", nperm))
     if(model == "glm"){
       lm.odds <- glm(ref.term, cnv.matrix, family = binomial (link = "logit"))
+      d.odds <- exp(lm.odds$linear.predictors)
+      
+      n.case <- sum(cnv.matrix[, label])
+      n.all <- length(cnv.matrix[, label])
+      
+      perm.hg <- BiasedUrn::rMFNCHypergeo(nran = nperm, m = rep(1, n.all), n = n.case, odds = d.odds)
+    }else if(model == "clm"){
+      lm.odds <- ordinal::clm(ref.term, data = cnv.matrix)
       d.odds <- exp(lm.odds$linear.predictors)
       
       n.case <- sum(cnv.matrix[, label])
@@ -558,9 +586,12 @@ CNVLociTest <- function(cnv.table, cnv.matrix, annotation.table, label, covariat
       if(model == "lm"){
         ref.model <- lm(ref.term, dt.temp)
         add.model <- lm(add.term, dt.temp)
-      }else{
+      }else if(model == "glm"){
         ref.model <- glm(ref.term, dt.temp, family = binomial(link = "logit"))
         add.model <- glm(add.term, dt.temp, family = binomial(link = "logit"))
+      }else{
+        ref.model <- clm(ref.term, data = dt.temp)
+        add.model <- clm(add.term, data = dt.temp)
       }
             
       ano <- anova(ref.model, add.model, test = "Chisq")
@@ -585,9 +616,12 @@ CNVLociTest <- function(cnv.table, cnv.matrix, annotation.table, label, covariat
           if(model == "lm"){
             ref.perm.model <- lm(ref.perm.term, dt.temp)
             add.perm.model <- lm(add.perm.term, dt.temp)
-          }else{
+          }else if(model == "glm"){
             ref.perm.model <- glm(ref.perm.term, dt.temp, family = binomial(link = "logit"))
             add.perm.model <- glm(add.perm.term, dt.temp, family = binomial(link = "logit"))
+          }else{
+            ref.perm.model <- ordinal::clm(ref.perm.term, data = dt.temp)
+            add.perm.model <- ordinal::clm(add.perm.term, data = dt.temp)
           }
           
           ano.perm <- anova(ref.perm.model, add.perm.model, test = "Chisq")
