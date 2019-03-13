@@ -251,7 +251,7 @@ CNVGlobalTest <- function(cnv.matrix, label, covariates, correctCNVCount = T, st
     message("continuous outcome variable detected. Linear regression is being done ...")
     model = "lm"
   }else if(is.factor(cnv.matrix[, label])){
-    message("ordinal outcome variable detected. Linear regression is being done ...")
+    message("ordinal outcome variable detected. Ordinal regression is being done ...")
     model = "clm"
   }else{
     stop("Non dichotomous or continuous or ordinal outcome variable detected. The burden test cannot be run")
@@ -326,7 +326,7 @@ CNVBurdenTest <- function(cnv.matrix, geneset, label, covariates, correctGlobalB
     message("continuous outcome variable detected. Linear regression is being done ...")
     model = "lm"
   }else if(is.factor(cnv.matrix[, label])){
-    message("ordinal outcome variable detected. Linear regression is being done ...")
+    message("ordinal outcome variable detected. Ordinal regression is being done ...")
     model = "clm"
   }else{
     stop("Non dichotomous or continuous outcome variable detected. The burden test cannot be run")
@@ -345,7 +345,7 @@ CNVBurdenTest <- function(cnv.matrix, geneset, label, covariates, correctGlobalB
       perm.hg <- BiasedUrn::rMFNCHypergeo(nran = nperm, m = rep(1, n.all), n = n.case, odds = d.odds)
     }else if(model == "clm"){
       lm.odds <- ordinal::clm(ref.term, data = cnv.matrix)
-      d.odds <- exp(lm.odds$linear.predictors)
+      d.odds <- exp(predict(lm.odds, cnv.matrix, type="linear.predictor")$eta1)
       
       n.case <- sum(cnv.matrix[, label])
       n.all <- length(cnv.matrix[, label])
@@ -492,7 +492,7 @@ CNVLociTest <- function(cnv.table, cnv.matrix, annotation.table, label, covariat
     message("continuous outcome variable detected. Linear regression is being done ...")
     model = "lm"
   }else if(is.factor(cnv.matrix[, label])){
-    message("ordinal outcome variable detected. Linear regression is being done ...")
+    message("ordinal outcome variable detected. Ordinal regression is being done ...")
     model = "clm"
   }else{
     stop("Non dichotomous or continuous outcome variable detected. The burden test cannot be run")
@@ -518,7 +518,7 @@ CNVLociTest <- function(cnv.table, cnv.matrix, annotation.table, label, covariat
       perm.hg <- BiasedUrn::rMFNCHypergeo(nran = nperm, m = rep(1, n.all), n = n.case, odds = d.odds)
     }else if(model == "clm"){
       lm.odds <- ordinal::clm(ref.term, data = cnv.matrix)
-      d.odds <- exp(lm.odds$linear.predictors)
+      d.odds <- exp(predict(lm.odds, cnv.matrix, type="linear.predictor")$eta1)
       
       n.case <- sum(cnv.matrix[, label])
       n.all <- length(cnv.matrix[, label])
