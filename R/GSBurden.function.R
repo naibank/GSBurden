@@ -539,20 +539,23 @@ CNVLociTest <- function(cnv.table, cnv.matrix, annotation.table, label, covariat
     cnv.g <- GenomicRanges::GRanges(cnv.table$chr, IRanges::IRanges(cnv.table$start, cnv.table$end), "*")
     annotation.g <- GenomicRanges::GRanges(annotation.table$chr, IRanges::IRanges(annotation.table$start, annotation.table$end), "*")
     olap <- data.frame(IRanges::findOverlaps(cnv.g, annotation.g))
-    table <- aggregate(queryHits ~ subjectHits, olap, paste, collapse = ",")
+    olap$gsymbol <- annotation.table$gsymbol[olap$subjectHits]
+    table <- aggregate(queryHits ~ gsymbol, olap, paste, collapse = ",")
     
     ########### generate loci ############
     new.loci <- data.frame()
     for(i in unique(table$queryHits)){
       temp.loci <- table[table$queryHits == i, ]
       this.samples <- unique(cnv.table$sample[as.numeric(as.character(strsplit(i, ",")[[1]]))])
+      temp.cnv <- cnv.table[unique(as.numeric(as.character(strsplit(i, ",")[[1]]))), ]
+      
       if(length(this.samples) >= nsubject){
         sample <- paste(this.samples, collapse = ",")
-        temp.loci <- annotation.table[temp.loci$subjectHits, ]
+        temp.loci <- annotation.table[annotation.table$gsymbol == temp.loci$gsymbol, ]
         temp.loci$enzid <- paste(unique(temp.loci$enzid), collapse = ",")
         temp.loci$gsymbol <- paste(unique(temp.loci$gsymbol), collapse = ",")
-        temp.loci$start <- min(temp.loci$start)
-        temp.loci$end <- max(temp.loci$end)
+        temp.loci$start <- min(temp.cnv$start)
+        temp.loci$end <- max(temp.cnv$end)
         temp.loci$sample <- sample
         temp.loci <- unique(temp.loci)
         
@@ -708,22 +711,24 @@ mergeLoci <- function(test.table, pvalue.column){
         subject1 <- unique(strsplit(as.character(test.out$sampleid[olap.rec$queryHits]), ",")[[1]])
         subject2 <- unique(strsplit(as.character(test.out$sampleid[olap.rec$subjectHits]), ",")[[1]])
         
-        if(length(intersect(subject1, subject2))/length(union(subject1, subject2)) >= 0.75){
-          enzid <- paste(unique(strsplit(paste(test.out$enzid[olap.rec$queryHits], test.out$enzid[olap.rec$subjectHits],sep=","),",")[[1]]), collapse = ",")
-          chr <- test.out$chr[olap.rec$queryHits]
-          start <- min(test.out$start[olap.rec$queryHits], test.out$start[olap.rec$subjectHits])
-          end <- max(test.out$end[olap.rec$queryHits], test.out$end[olap.rec$subjectHits])
-          gsymbol<- paste(unique(strsplit(paste(test.out$gsymbol[olap.rec$queryHits], test.out$gsymbol[olap.rec$subjectHits],sep=","),",")[[1]]), collapse = ",")
-          type <- test.out$type[olap.rec$queryHits]
-          sampleid <- paste(unique(strsplit(paste(test.out$sampleid[olap.rec$queryHits], test.out$sampleid[olap.rec$subjectHits],sep=","),",")[[1]]), collapse = ",")
-          pvalue <- which.min(test.out$pvalue[c(olap.rec$queryHits, olap.rec$subjectHits)])
-          coefficient <- test.out$coefficient[c(olap.rec$queryHits, olap.rec$subjectHits)][which.min(test.out$pvalue[c(olap.rec$queryHits, olap.rec$subjectHits)])]
-          pvalue <- min(test.out$pvalue[c(olap.rec$queryHits, olap.rec$subjectHits)])
-          
-          merge.test <- data.frame(enzid, chr, start, end, gsymbol, type, coefficient, sampleid, pvalue)
-          test.out <- rbind(test.out, merge.test)
-          
-          remove.test <- c(remove.test, olap.rec$queryHits, olap.rec$subjectHits)
+        if(!(olap.rec$queryHits %in% remove.test | olap.rec$queryHits %in% remove.test)){
+          if(length(intersect(subject1, subject2))/length(union(subject1, subject2)) >= 0.75){
+            enzid <- paste(unique(strsplit(paste(test.out$enzid[olap.rec$queryHits], test.out$enzid[olap.rec$subjectHits],sep=","),",")[[1]]), collapse = ",")
+            chr <- test.out$chr[olap.rec$queryHits]
+            start <- min(test.out$start[olap.rec$queryHits], test.out$start[olap.rec$subjectHits])
+            end <- max(test.out$end[olap.rec$queryHits], test.out$end[olap.rec$subjectHits])
+            gsymbol<- paste(unique(strsplit(paste(test.out$gsymbol[olap.rec$queryHits], test.out$gsymbol[olap.rec$subjectHits],sep=","),",")[[1]]), collapse = ",")
+            type <- test.out$type[olap.rec$queryHits]
+            sampleid <- paste(unique(strsplit(paste(test.out$sampleid[olap.rec$queryHits], test.out$sampleid[olap.rec$subjectHits],sep=","),",")[[1]]), collapse = ",")
+            pvalue <- which.min(test.out$pvalue[c(olap.rec$queryHits, olap.rec$subjectHits)])
+            coefficient <- test.out$coefficient[c(olap.rec$queryHits, olap.rec$subjectHits)][which.min(test.out$pvalue[c(olap.rec$queryHits, olap.rec$subjectHits)])]
+            pvalue <- min(test.out$pvalue[c(olap.rec$queryHits, olap.rec$subjectHits)])
+            
+            merge.test <- data.frame(enzid, chr, start, end, gsymbol, type, coefficient, sampleid, pvalue)
+            test.out <- rbind(test.out, merge.test)
+            
+            remove.test <- c(remove.test, olap.rec$queryHits, olap.rec$subjectHits)
+          }
         }
       }
       
