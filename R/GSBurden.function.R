@@ -64,6 +64,7 @@ CNVSet <- function(sample, chr, start, end, type = "-"){
 #' @param chr a vector of chromosome name of CNVs
 #' @param start a vector of start locations of CNVs
 #' @param end a vector of end locations of CNVs
+#' @param gsymbol a vector of Gene symbols
 #' @keywords Entrez id
 #' @export
 GeneAnnotation <- function(enzid, chr, start, end, gsymbol = "-"){
@@ -277,15 +278,15 @@ CNVGlobalTest <- function(cnv.matrix, label, covariates, correctCNVCount = T, st
     if(model == "lm"){
       ref.model <- lm(ref.term, cnv.matrix)
       add.model <- lm(add.term, cnv.matrix)
-      ano <- anova(ref.model, add.model, test = "Chisq"))
+      ano <- anova(ref.model, add.model, test = "Chisq")
     }else if(model == "glm"){
       ref.model <- glm(ref.term, cnv.matrix, family = binomial(link = "logit"))
       add.model <- glm(add.term, cnv.matrix, family = binomial(link = "logit"))
-      ano <- anova(ref.model, add.model, test = "Chisq"))
+      ano <- anova(ref.model, add.model, test = "Chisq")
     }else{
       ref.model <- ordinal::clm(ref.term, data = cnv.matrix)
       add.model <- ordinal::clm(add.term, data = cnv.matrix)
-      ano <- anova(ref.model, add.model))
+      ano <- anova(ref.model, add.model)
     }
     
     names(ano)[length(names(ano))] <- "pvalue"
@@ -309,8 +310,10 @@ CNVGlobalTest <- function(cnv.matrix, label, covariates, correctCNVCount = T, st
 #' @param geneset a list of gene set, which each element contains a list of Entrez gene IDs
 #' @param label variable name that is used as outcome
 #' @param covariates list of covariates to be used in the model
-#' @param correctCNVCount logical value to indicate whether the burden will be corrected for CNV count or not
+#' @param correctGlobalBurden logical value to indicate whether the burden will be corrected for CNV count or not
 #' @param standardizeCoefficient logical value to indicate whether coefficient will be standardized or not
+#' @param permutation logical value to indicate whether permutation is required or not
+#' @param nperm numeric value to indicate number of iterations in permutation
 #' @param BiasedUrn logical value to indicate whether BaisedUrn will be used to permute label or not
 #' @keywords GSBurden
 #' @export
@@ -739,3 +742,5 @@ mergeLoci <- function(test.table, pvalue.column){
   message("Loci testing done!")
   return(test.out)
 }
+
+
