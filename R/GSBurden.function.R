@@ -551,7 +551,7 @@ CNVLociTest <- function(cnv.table, cnv.matrix, annotation.table, label, covariat
       
       if(length(this.samples) >= nsubject){
         sample <- paste(this.samples, collapse = ",")
-        temp.loci <- annotation.table[annotation.table$gsymbol == temp.loci$gsymbol, ]
+        temp.loci <- annotation.table[annotation.table$gsymbol %in% temp.loci$gsymbol, ]
         temp.loci$enzid <- paste(unique(temp.loci$enzid), collapse = ",")
         temp.loci$gsymbol <- paste(unique(temp.loci$gsymbol), collapse = ",")
         temp.loci$start <- min(temp.cnv$start)
@@ -675,6 +675,8 @@ CNVLociTest <- function(cnv.table, cnv.matrix, annotation.table, label, covariat
     
     final.out <- rbind(final.out, dt.out.merge)
   }
+  
+  names(final.out)[2:3] <- c("loci.start", "loci.end")
   return(final.out)
 }
 
