@@ -563,6 +563,10 @@ CNVLociTest <- function(cnv.table, cnv.matrix, annotation.table, label, covariat
       }
     }
     
+    if(nrow(new.loci) == 0){
+      stop(sprintf("No loci having at least %s subjects. Please reduce nsubject param (default: nsubject=3)", nsubject))
+    }
+    
     current.count <- 1
     all.count <- nrow(new.loci)
     dt.out <- data.frame()
