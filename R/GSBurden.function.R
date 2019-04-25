@@ -152,50 +152,39 @@ getCNVGSMatrix <- function(cnv.table, annotation.table, geneset){
 #' This function is to get a matrix of gene set count by sample but separate duplication by disruption.
 #' @param cnv.table CNV table
 #' @param annotation.table gene annotation table
-#' @param appris.cds appris principal isoform cds. Each row represent an exon but only coding sequence.
-#' @param appris.nodisrupt appris principal isoform promoter and stop codon.
+#' @param appris.transcript appris principal isoform transcript. Each row represent a full transcript.
 #' @param geneset gene set object
 #' @keywords GSBurden Separate duplication by disruption
 #' @export
-getCNVDupGSMatrix <- function(cnv.table, annotation.table, appris.cds, appris.nodisrupt, geneset){
+getCNVDupGSMatrix <- function(cnv.table, annotation.table, appris.transcript, geneset){
   this.cnv.table <- cnv.table
   all.out <- data.frame()
   cnv.g <- GenomicRanges::GRanges(this.cnv.table$chr, IRanges::IRanges(this.cnv.table$start, this.cnv.table$end), "*")
   annotation.g <- GenomicRanges::GRanges(annotation.table$chr, IRanges::IRanges(annotation.table$start, annotation.table$end), "*")
-  appris.cds.g <- GenomicRanges::GRanges(appris.cds$chr, IRanges::IRanges(appris.cds$start, appris.cds$end),"*")
-  appris.nodisrupt.g <- GenomicRanges::GRanges(appris.nodisrupt$chr, IRanges::IRanges(appris.nodisrupt$start, appris.nodisrupt$end),"*")
-  
-  olap.nodisrupt <- data.frame(IRanges::findOverlaps(cnv.g, appris.nodisrupt.g))
-  olap.nodisrupt$elementsize <- appris.nodisrupt$end[olap.nodisrupt$subjectHits]-appris.nodisrupt$start[olap.nodisrupt$subjectHits] + 1
-  olap.nodisrupt$olapsize <- IRanges::width(IRanges::pintersect(cnv.g[olap.nodisrupt$queryHits], appris.nodisrupt.g[olap.nodisrupt$subjectHits]))
-  olap.nodisrupt <- olap.nodisrupt[olap.nodisrupt$elementsize == olap.nodisrupt$olapsize, ]
-  olap.nodisrupt$gsymbol <- appris.nodisrupt$gsymbol[olap.nodisrupt$subjectHits]
-  olap.nodisrupt$key <- paste(olap.nodisrupt$queryHits, olap.nodisrupt$gsymbol, sep=":")
-  
-  olap.appris <- data.frame(IRanges::findOverlaps(cnv.g, appris.cds.g))
-  olap.appris$gsymbol <- appris.cds$gsymbol[olap.appris$subjectHits]
+  appris.g <- GenomicRanges::GRanges(appris.transcript$chr, IRanges::IRanges(appris.transcript$start, appris.transcript$end),"*")
+
+  olap.appris <- data.frame(IRanges::findOverlaps(cnv.g, appris.g))
+  olap.appris$gsymbol <- appris.transcript$gsymbol[olap.appris$subjectHits]
   olap.appris$key <- paste(olap.appris$queryHits, olap.appris$gsymbol, sep=":")
-  olap.appris <- olap.appris[!olap.appris$key %in% olap.nodisrupt$key, ]
-  
-  # olap.appris$size <- GenomicRanges::width(GenomicRanges::pintersect(cnv.g[olap.appris$queryHits], 
-  #                                                                    appris.g[olap.appris$subjectHits]))
-  # olap.appris$possible.size <- GenomicRanges::width(appris.g[olap.appris$subjectHits])
-  # olap.appris.nodis <- olap.appris[olap.appris$size >= olap.appris$possible.size, ]
-  # olap.appris <- olap.appris[olap.appris$size < olap.appris$possible.size, ]
+  olap.appris$size <- GenomicRanges::width(GenomicRanges::pintersect(cnv.g[olap.appris$queryHits], 
+                                                                     appris.g[olap.appris$subjectHits]))
+  olap.appris$possible.size <- GenomicRanges::width(appris.g[olap.appris$subjectHits])
+  olap.appris <- olap.appris[olap.appris$size >= olap.appris$possible.size, ]
   
   olap <- data.frame(IRanges::findOverlaps(cnv.g, annotation.g))
   
-  for(i in c("NoDisruptDup", "DisruptDup")){
-    if(i == "NoDisruptDup"){
-      th.olap <- olap #olap[!olap$queryHits %in% olap.appris$queryHits, ]
+  for(i in c("FullDup", "PartialDup")){
+    if(i == "PartialDup"){
+      th.olap <- olap
       info.table <- annotation.table
       th.olap$enzid <- info.table$enzid[th.olap$subjectHits]
       th.olap$gsymbol <- info.table$gsymbol[th.olap$subjectHits]
-      th.olap <- th.olap[!paste(th.olap$queryHits, th.olap$gsymbol, sep=":") %in% 
-                           paste(olap.appris$queryHits, olap.appris$gsymbol, sep=":"), ]
+      th.olap$key <- paste(th.olap$queryHits, th.olap$gsymbol, sep=":")
+      th.olap <- th.olap[!th.olap$key %in% olap.appris$key, ]
+      
     }else{
       th.olap <- olap.appris
-      th.olap <- merge(th.olap, annotation.table[, c("gsymbol", "enzid")], by = "gsymbol", all.x = T)
+      th.olap$enzid <- appris.transcript$enzid[th.olap$subjectHits]
     }
     
     th.olap$sample <- this.cnv.table$sample[th.olap$queryHits]
