@@ -392,9 +392,17 @@ CNVBurdenTest <- function(cnv.matrix, geneset, label, covariates, correctGlobalB
       names(ano)[length(names(ano))] <- "pvalue"
       pvalue <- ano$pvalue[2]
       coefficient <- add.model$coefficients[feature]
-      conf <- confint(add.model)
-      coeff.l <- conf[feature, 1]
-      coeff.u <- conf[feature, 2]
+      conf <- tryCatch({confint(add.model)}, 
+               error = function(e){return(NA)})
+      
+      if(is.na(conf)){
+        coeff.l <- 0
+        coeff.u <- 0
+      }else{
+        coeff.l <- conf[feature, 1]
+        coeff.u <- conf[feature, 2]
+      }
+      
       
       temp.out <- data.frame("geneset" = this.gs, "type" = cnvtype, "coefficient" = coefficient, 
                              "coeff.upper" = coeff.u, "coeff.lower" = coeff.l, "pvalue" = pvalue)
@@ -440,6 +448,181 @@ CNVBurdenTest <- function(cnv.matrix, geneset, label, covariates, correctGlobalB
       
       fdr <- ifelse(perm/actual > 1, 1, perm/actual)
 
+      test.out$permFDR[i] <- fdr
+    }
+  }
+  
+  test.out <- test.out[order(test.out$pvalue), ]
+  for(i in 1:nrow(test.out)){
+    test.out$permFDR[i] <- min(test.out$permFDR[i:nrow(test.out)])
+  }
+  
+  list.out <- list(test.out, perm.test.pvalues)
+  names(list.out) <- c("Test", "Permutation.Test")
+  return(list.out)
+}
+
+
+#'
+#' This function is to test for geneset burden of gene count.
+#' @param snv.matrix SNV table containing samples' outcome, gene count, covariates (optional) and snv count (optional)
+#' @param geneset a list of gene set, which each element contains a list of Entrez gene IDs
+#' @param label variable name that is used as outcome
+#' @param covariates list of covariates to be used in the model
+#' @param correctGlobalBurden logical value to indicate whether the burden will be corrected for SNV count or not
+#' @param standardizeCoefficient logical value to indicate whether coefficient will be standardized or not
+#' @param permutation logical value to indicate whether permutation is required or not
+#' @param nperm numeric value to indicate number of iterations in permutation
+#' @param BiasedUrn logical value to indicate whether BaisedUrn will be used to permute label or not
+#' @keywords GSBurden
+#' @export
+#' 
+SNVBurdenTest <- function(snv.matrix, geneset, label, covariates, correctGlobalBurden = T, standardizeCoefficient = T, 
+                          permutation = T, nperm = 100, BiasedUrn = F){
+  
+  distinct.prefixes <- names(snv.matrix)[grep(names(geneset)[1], names(snv.matrix))]
+  distinct.prefixes <- gsub(sprintf("%s_", names(geneset)[1]), "", distinct.prefixes)
+  
+  model = "lm"
+  if(length(unique(snv.matrix[, label])) == 2){
+    message("dichotomous outcome variable detected. Logistic regression is being done ...")
+    model = "glm"
+  }else if(is.numeric(snv.matrix[, label])){
+    message("continuous outcome variable detected. Linear regression is being done ...")
+    model = "lm"
+  }else if(is.factor(snv.matrix[, label])){
+    message("ordinal outcome variable detected. Ordinal regression is being done ...")
+    model = "clm"
+  }else{
+    stop("Non dichotomous or continuous outcome variable detected. The burden test cannot be run")
+  }
+  
+  if(permutation){
+    ref.term <- sprintf("%s ~ %s", label, paste(covariates, collapse = " + "))
+    message(sprintf("Permuting sample labels for %s times", nperm))
+    if(BiasedUrn){
+      lm.odds <- glm(ref.term, snv.matrix, family = binomial (link = "logit"))
+      d.odds <- exp(lm.odds$linear.predictors)
+      
+      n.case <- sum(snv.matrix[, label])
+      n.all <- length(snv.matrix[, label])
+      
+      perm.hg <- BiasedUrn::rMFNCHypergeo(nran = nperm, m = rep(1, n.all), n = n.case, odds = d.odds)
+    }else{
+      perm.hg <- data.frame(1:nrow(snv.matrix), nrow(snv.matrix):1)
+      for(i in 1:nperm){
+        permuted <- sample(snv.matrix[, label])
+        perm.hg <- cbind(perm.hg, permuted)
+      }
+      
+      perm.hg <- perm.hg[, -c(1:2)]
+    }
+    
+  }
+  
+  perm.test.pvalues <- data.frame()
+  test.out <- data.frame()
+  for(this.gs in names(geneset)){
+    out.message <- sprintf("Testing %s", this.gs)
+    if(length(distinct.prefixes) > 1){
+      out.message <- sprintf("%s ...", out.message)
+    }
+    message(out.message)
+    
+    feature <- names(snv.matrix)[grep(this.gs, names(snv.matrix))]
+    global <- names(snv.matrix)[grep("Total_", names(snv.matrix))]
+    
+    this.covariates <- covariates
+    if(correctGlobalBurden){
+      this.covariates <- c(this.covariates, global)
+    }
+    
+    ref.term <- sprintf("%s ~ %s", label, paste(this.covariates, collapse = " + "))
+    add.term <- sprintf("%s + %s", ref.term, paste(feature, collapse = " + "))
+    
+    for(sing.feat in feature){
+      if(standardizeCoefficient & mean(snv.matrix[, sing.feat]) != 0 & sd(snv.matrix[, sing.feat]) != 0){
+        snv.matrix[, sing.feat] <- scale(snv.matrix[, sing.feat])
+      }
+    }
+    
+    
+    if(model == "lm"){
+      ref.model <- lm(ref.term, snv.matrix)
+      add.model <- lm(add.term, snv.matrix)
+      ano <- anova(ref.model, add.model, test = "Chisq")
+    }else if(model == "glm"){
+      ref.model <- glm(ref.term, snv.matrix, family = binomial(link = "logit"))
+      add.model <- glm(add.term, snv.matrix, family = binomial(link = "logit"))
+      ano <- anova(ref.model, add.model, test = "Chisq")
+    }else{
+      ref.model <- ordinal::clm(ref.term, data = snv.matrix)
+      add.model <- ordinal::clm(add.term, data = snv.matrix)
+      ano <- anova(ref.model, add.model)
+    }
+    
+    names(ano)[length(names(ano))] <- "pvalue"
+    pvalue <- ano$pvalue[2]
+    coefficient <- add.model$coefficients[feature]
+    conf <- tryCatch({confint(add.model)}, 
+                     error = function(e){return(NA)})
+    
+    if(is.na(conf)){
+      coeff.l <- 0
+      coeff.u <- 0
+    }else{
+      coeff.l <- conf[feature, 1]
+      coeff.u <- conf[feature, 2]
+    }
+    
+    temp.out <- data.frame()
+    for(th.feat in feature){
+      temp.out <- rbind(temp.out, data.frame("geneset" = this.gs, "type" = gsub("^_", "", gsub(this.gs, "", th.feat)), 
+                                             "coefficient" = coefficient[th.feat], 
+                             "coeff.upper" = coeff.u[th.feat], "coeff.lower" = coeff.l[th.feat], "pvalue" = pvalue))
+    }
+    
+    test.out <- rbind(test.out, temp.out)
+    
+    if(permutation){
+      for(iperm in 1:nperm){
+        snv.matrix$outcome.perm <- perm.hg[, iperm]
+        ref.perm.term <- sprintf("outcome.perm ~ %s", paste(this.covariates, collapse = " + "))
+        add.perm.term <- sprintf("%s + %s", ref.perm.term, paste(feature, collapse = " + "))
+        
+        if(model == "lm"){
+          ref.perm.model <- lm(ref.perm.term, snv.matrix)
+          add.perm.model <- lm(add.perm.term, snv.matrix)
+          ano.perm <- anova(ref.perm.model, add.perm.model, test = "Chisq")
+        }else if(model == "glm"){
+          ref.perm.model <- glm(ref.perm.term, snv.matrix, family = binomial(link = "logit"))
+          add.perm.model <- glm(add.perm.term, snv.matrix, family = binomial(link = "logit"))
+          ano.perm <- anova(ref.perm.model, add.perm.model, test = "Chisq")
+        }else{
+          ref.perm.model <- ordinal::clm(ref.perm.term, data = snv.matrix)
+          add.perm.model <- ordinal::clm(add.perm.term, data = snv.matrix)
+          ano.perm <- anova(ref.perm.model, add.perm.model)
+        }
+        
+        names(ano.perm)[length(names(ano.perm))] <- "pvalue"
+        #coeff <- add.perm.model$coefficients[feature]
+        perm.test.pvalues <- rbind(perm.test.pvalues, data.frame("geneset" = this.gs, "pvalue" = ano.perm$pvalue[2]))
+      }
+    }
+  }
+  
+  if(permutation){
+    message("Calculating permutation-based FDR")
+    test.out$permFDR <- 1
+    for(i in 1:nrow(test.out)){
+      rec <- test.out[i, ]
+      this.perm <- perm.test.pvalues
+      
+      actual <- sum(test.out$pvalue <= rec$pvalue)/nrow(test.out)
+      perm <- sum(this.perm$pvalue <= rec$pvalue)/nrow(this.perm)
+      
+      fdr <- ifelse(perm/actual > 1, 1, perm/actual)
+      
       test.out$permFDR[i] <- fdr
     }
   }
