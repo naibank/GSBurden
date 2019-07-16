@@ -712,6 +712,7 @@ CNVLociTest <- function(cnv.table, cnv.matrix, annotation.table, label, covariat
     annotation.g <- GenomicRanges::GRanges(annotation.table$chr, IRanges::IRanges(annotation.table$start, annotation.table$end), "*")
     olap <- data.frame(IRanges::findOverlaps(cnv.g, annotation.g))
     olap$gsymbol <- annotation.table$gsymbol[olap$subjectHits]
+    olap <- unique(olap[, c("queryHits", "gsymbol")])
     table <- aggregate(queryHits ~ gsymbol, olap, paste, collapse = ",")
     
     ########### generate loci ############
@@ -724,6 +725,9 @@ CNVLociTest <- function(cnv.table, cnv.matrix, annotation.table, label, covariat
       if(length(this.samples) >= nsubject){
         sample <- paste(this.samples, collapse = ",")
         temp.loci <- annotation.table[annotation.table$gsymbol %in% temp.loci$gsymbol, ]
+        temp.loci$gene.start <- min(temp.loci$start)
+        temp.loci$gene.end <- max(temp.loci$end)
+        
         temp.loci$enzid <- paste(unique(temp.loci$enzid), collapse = ",")
         temp.loci$gsymbol <- paste(unique(temp.loci$gsymbol), collapse = ",")
         temp.loci$start <- min(temp.cnv$start)
@@ -776,6 +780,8 @@ CNVLociTest <- function(cnv.table, cnv.matrix, annotation.table, label, covariat
                              "end" = this.loci$end, "gsymbol" = this.loci$gsymbol, 
                              "type" = cnvtype, "coefficient" = coefficient, "pvalue" = pvalue, 
                              "sampleid" = this.loci$sample, 
+                             "gene.start" = this.loci$gene.start,
+                             "gene.end" = this.loci$gene.end,
                              "sampleclass" = paste(dt.temp$status[dt.temp$gene_count == 1], collapse = ","),
                              stringsAsFactors = F)
       
@@ -837,7 +843,7 @@ CNVLociTest <- function(cnv.table, cnv.matrix, annotation.table, label, covariat
       }
       
       rownames(dt.out.merge) <- NULL
-      dt.out.merge <- dt.out.merge[, c(2:4, 6, 7, 9:10, 1, 5, 8)]
+      dt.out.merge <- dt.out.merge[, c(2:4, 9:10, 6, 7, 11:12, 1, 5, 8)]
       
       dt.out.merge <- dt.out.merge[order(dt.out.merge$pvalue), ]
       for(i in 1:nrow(dt.out.merge)){
@@ -860,7 +866,7 @@ CNVLociTest <- function(cnv.table, cnv.matrix, annotation.table, label, covariat
 #' @export
 mergeLoci <- function(test.table, pvalue.column){
   test.table <- test.table[order(test.table[, pvalue.column]), ]
-  test.out <- test.table[, c(names(test.table)[c(1:7,9)], pvalue.column)]
+  test.out <- test.table[, c(names(test.table)[c(1:7,9:11)], pvalue.column)]
   names(test.out)[which(names(test.out) == pvalue.column)] <- "pvalue"
   
   mergable <- T
@@ -895,6 +901,8 @@ mergeLoci <- function(test.table, pvalue.column){
             chr <- test.out$chr[olap.rec$queryHits]
             start <- min(test.out$start[olap.rec$queryHits], test.out$start[olap.rec$subjectHits])
             end <- max(test.out$end[olap.rec$queryHits], test.out$end[olap.rec$subjectHits])
+            gene.start <- min(test.out$gene.start[olap.rec$queryHits], test.out$gene.start[olap.rec$subjectHits])
+            gene.end <- max(test.out$gene.end[olap.rec$queryHits], test.out$gene.end[olap.rec$subjectHits])
             gsymbol<- paste(unique(strsplit(paste(test.out$gsymbol[olap.rec$queryHits], test.out$gsymbol[olap.rec$subjectHits],sep=","),",")[[1]]), collapse = ",")
             type <- test.out$type[olap.rec$queryHits]
             sampleid <- paste(unique(strsplit(paste(test.out$sampleid[olap.rec$queryHits], test.out$sampleid[olap.rec$subjectHits],sep=","),",")[[1]]), collapse = ",")
@@ -902,7 +910,7 @@ mergeLoci <- function(test.table, pvalue.column){
             coefficient <- test.out$coefficient[c(olap.rec$queryHits, olap.rec$subjectHits)][which.min(test.out$pvalue[c(olap.rec$queryHits, olap.rec$subjectHits)])]
             pvalue <- min(test.out$pvalue[c(olap.rec$queryHits, olap.rec$subjectHits)])
             
-            merge.test <- data.frame(enzid, chr, start, end, gsymbol, type, coefficient, sampleid, pvalue)
+            merge.test <- data.frame(enzid, chr, start, end, gene.start, gene.end, gsymbol, type, coefficient, sampleid, pvalue)
             test.out <- rbind(test.out, merge.test)
             
             remove.test <- c(remove.test, olap.rec$queryHits, olap.rec$subjectHits)
