@@ -281,7 +281,7 @@ CNVGlobalTest <- function(cnv.matrix, label, covariates, correctCNVCount = T, st
     names(ano)[length(names(ano))] <- "pvalue"
     pvalue <- ano$pvalue[2]
     coefficient <- add.model$coefficients[feature]
-    intervals <- confint(add.model)
+    intervals <- confint.default(add.model)
     upperbound <- intervals[feature, "97.5 %"]
     lowerbound <- intervals[feature, "2.5 %"]
     
@@ -392,7 +392,7 @@ CNVBurdenTest <- function(cnv.matrix, geneset, label, covariates, correctGlobalB
       names(ano)[length(names(ano))] <- "pvalue"
       pvalue <- ano$pvalue[2]
       coefficient <- add.model$coefficients[feature]
-      conf <- tryCatch({confint(add.model)}, 
+      conf <- tryCatch({confint.default(add.model)}, 
                error = function(e){return(NA)})
       
       if(is.na(conf)){
@@ -564,7 +564,7 @@ SNVBurdenTest <- function(snv.matrix, geneset, label, covariates, correctGlobalB
     names(ano)[length(names(ano))] <- "pvalue"
     pvalue <- ano$pvalue[2]
     coefficient <- add.model$coefficients[feature]
-    conf <- tryCatch({confint(add.model)}, 
+    conf <- tryCatch({confint.default(add.model)}, 
                      error = function(e){return(NA)})
     
     if(is.na(conf)){
