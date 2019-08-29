@@ -261,8 +261,8 @@ CNVGlobalTest <- function(cnv.matrix, label, covariates, correctCNVCount = T, st
 
     for(feature in features){
       this.covariates <- covariates
-      if(correctCNVCount){
-        this.covariates <- c(this.covariates, cnvcount)
+      if(feature == "gene_count" & correctCNVCount){
+        this.covariates <- c(this.covariates, paste("cnv_count", cnvtype, sep="_"))
       }
       
       ref.term <- sprintf("%s ~ %s", label, paste(this.covariates, collapse = " + "))
