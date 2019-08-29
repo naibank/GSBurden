@@ -109,9 +109,10 @@ getCNVGSMatrix <- function(cnv.table, annotation.table, geneset){
   cnvtypes <- unique(cnv.table$type)
   for(cnvtype in cnvtypes){
     this.cnv.table <- cnv.table[cnv.table$type == cnvtype, ]
+    this.cnv.table$size <- this.cnv.table$end - this.cnv.table$start + 1
     cnv.g <- GenomicRanges::GRanges(this.cnv.table$chr, IRanges::IRanges(this.cnv.table$start, this.cnv.table$end), "*")
     annotation.g <- GenomicRanges::GRanges(annotation.table$chr, IRanges::IRanges(annotation.table$start, annotation.table$end), "*")
-    
+    cnvSize <- aggregate(size ~ sample, this.cnv.table, sum)
     olap <- data.frame(IRanges::findOverlaps(cnv.g, annotation.g))
     olap$sample <- this.cnv.table$sample[olap$queryHits]
     olap$enzid <- annotation.table$enzid[olap$subjectHits]
@@ -126,8 +127,10 @@ getCNVGSMatrix <- function(cnv.table, annotation.table, geneset){
     
     cnvCount <- data.frame(sample = names(cnvCount), cnv_count = as.numeric(cnvCount))
     geneCount <- data.frame(sample = names(geneCount), gene_count = as.numeric(geneCount))
+    names(cnvSize) <- c("sample", "cnv_size")
     
     dt.out <- merge(cnvCount, geneCount, by = "sample", all.x = T)
+    dt.out <- merge(dt.out, cnvSize, by = "sample", all.x = T)
     dt.out <- merge(dt.out, gsMatrix, by = "sample", all.x = T)
     dt.out[is.na(dt.out)] <- 0
     
@@ -158,11 +161,13 @@ getCNVGSMatrix <- function(cnv.table, annotation.table, geneset){
 #' @export
 getCNVDupGSMatrix <- function(cnv.table, annotation.table, appris.transcript, geneset){
   this.cnv.table <- cnv.table
+  this.cnv.table$size <- this.cnv.table$end - this.cnv.table$start + 1
+  
   all.out <- data.frame()
   cnv.g <- GenomicRanges::GRanges(this.cnv.table$chr, IRanges::IRanges(this.cnv.table$start, this.cnv.table$end), "*")
   annotation.g <- GenomicRanges::GRanges(annotation.table$chr, IRanges::IRanges(annotation.table$start, annotation.table$end), "*")
   appris.g <- GenomicRanges::GRanges(appris.transcript$chr, IRanges::IRanges(appris.transcript$start, appris.transcript$end),"*")
-
+  
   olap.appris <- data.frame(IRanges::findOverlaps(cnv.g, appris.g))
   olap.appris$gsymbol <- appris.transcript$gsymbol[olap.appris$subjectHits]
   olap.appris$key <- paste(olap.appris$queryHits, olap.appris$gsymbol, sep=":")
@@ -189,6 +194,7 @@ getCNVDupGSMatrix <- function(cnv.table, annotation.table, appris.transcript, ge
     
     th.olap$sample <- this.cnv.table$sample[th.olap$queryHits]
     cnvCount <- table(th.olap$sample[!duplicated(th.olap$queryHits)])
+    cnvSize <- aggregate(size ~ sample, this.cnv.table[unique(th.olap$queryHits)], sum)
     
     th.olap <- unique(th.olap[, c("sample", "enzid")])
     geneCount <- table(th.olap$sample)
@@ -198,8 +204,10 @@ getCNVDupGSMatrix <- function(cnv.table, annotation.table, appris.transcript, ge
     
     th.cnvCount <- data.frame(sample = names(cnvCount), cnv_count = as.numeric(cnvCount))
     th.geneCount <- data.frame(sample = names(geneCount), gene_count = as.numeric(geneCount))
+    names(cnvSize) <- c("sample", "cnv_size")
     
     dt.out <- merge(th.cnvCount, th.geneCount, by = "sample", all.x = T)
+    dt.out <- merge(dt.out, cnvSize, by = "sample", all.x = T)
     dt.out <- merge(dt.out, gsMatrix, by = "sample", all.x = T)
     dt.out[is.na(dt.out)] <- 0
     
@@ -249,44 +257,46 @@ CNVGlobalTest <- function(cnv.matrix, label, covariates, correctCNVCount = T, st
   
   test.out <- data.frame()
   for(cnvtype in distinct.prefixes){
-    feature <- sprintf("gene_count_%s", cnvtype)
-    cnvcount <- sprintf("cnv_count_%s", cnvtype)
-    
-    this.covariates <- covariates
-    if(correctCNVCount){
-      this.covariates <- c(this.covariates, cnvcount)
+    features <- paste(c("gene_count", "cnv_count", "cnv_size"), cnvtype, sep="_")
+
+    for(feature in features){
+      this.covariates <- covariates
+      if(correctCNVCount){
+        this.covariates <- c(this.covariates, cnvcount)
+      }
+      
+      ref.term <- sprintf("%s ~ %s", label, paste(this.covariates, collapse = " + "))
+      add.term <- sprintf("%s + %s", ref.term, feature)
+      
+      if(standardizeCoefficient){
+        cnv.matrix[, feature] <- scale(cnv.matrix[, feature])
+      }
+      
+      if(model == "lm"){
+        ref.model <- lm(ref.term, cnv.matrix)
+        add.model <- lm(add.term, cnv.matrix)
+        ano <- anova(ref.model, add.model, test = "Chisq")
+      }else if(model == "glm"){
+        ref.model <- glm(ref.term, cnv.matrix, family = binomial(link = "logit"))
+        add.model <- glm(add.term, cnv.matrix, family = binomial(link = "logit"))
+        ano <- anova(ref.model, add.model, test = "Chisq")
+      }else{
+        ref.model <- ordinal::clm(ref.term, data = cnv.matrix)
+        add.model <- ordinal::clm(add.term, data = cnv.matrix)
+        ano <- anova(ref.model, add.model)
+      }
+      
+      names(ano)[length(names(ano))] <- "pvalue"
+      pvalue <- ano$pvalue[2]
+      coefficient <- add.model$coefficients[feature]
+      intervals <- confint.default(add.model)
+      upperbound <- intervals[feature, "97.5 %"]
+      lowerbound <- intervals[feature, "2.5 %"]
+      
+      temp.out <- data.frame("global" = gsub(paste0("_", cnvtype), "", feature), 
+                             "type" = cnvtype, "coefficient" = coefficient, lowerbound, upperbound, "pvalue" = pvalue)
+      test.out <- rbind(test.out, temp.out)
     }
-    
-    ref.term <- sprintf("%s ~ %s", label, paste(this.covariates, collapse = " + "))
-    add.term <- sprintf("%s + %s", ref.term, feature)
-    
-    if(standardizeCoefficient){
-      cnv.matrix[, feature] <- scale(cnv.matrix[, feature])
-    }
-    
-    if(model == "lm"){
-      ref.model <- lm(ref.term, cnv.matrix)
-      add.model <- lm(add.term, cnv.matrix)
-      ano <- anova(ref.model, add.model, test = "Chisq")
-    }else if(model == "glm"){
-      ref.model <- glm(ref.term, cnv.matrix, family = binomial(link = "logit"))
-      add.model <- glm(add.term, cnv.matrix, family = binomial(link = "logit"))
-      ano <- anova(ref.model, add.model, test = "Chisq")
-    }else{
-      ref.model <- ordinal::clm(ref.term, data = cnv.matrix)
-      add.model <- ordinal::clm(add.term, data = cnv.matrix)
-      ano <- anova(ref.model, add.model)
-    }
-    
-    names(ano)[length(names(ano))] <- "pvalue"
-    pvalue <- ano$pvalue[2]
-    coefficient <- add.model$coefficients[feature]
-    intervals <- confint.default(add.model)
-    upperbound <- intervals[feature, "97.5 %"]
-    lowerbound <- intervals[feature, "2.5 %"]
-    
-    temp.out <- data.frame("global" = "Gene", "type" = cnvtype, "coefficient" = coefficient, lowerbound, upperbound, "pvalue" = pvalue)
-    test.out <- rbind(test.out, temp.out)
   }
   
   return(test.out)
