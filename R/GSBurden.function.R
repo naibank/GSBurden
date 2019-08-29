@@ -129,9 +129,9 @@ getCNVGSMatrix <- function(cnv.table, annotation.table, geneset){
     geneCount <- data.frame(sample = names(geneCount), gene_count = as.numeric(geneCount))
     names(cnvSize) <- c("sample", "cnv_size")
     
-    dt.out <- merge(cnvCount, geneCount, by = "sample", all.x = T)
-    dt.out <- merge(dt.out, cnvSize, by = "sample", all.x = T)
-    dt.out <- merge(dt.out, gsMatrix, by = "sample", all.x = T)
+    dt.out <- merge(cnvCount, geneCount, by = "sample", all = T)
+    dt.out <- merge(dt.out, cnvSize, by = "sample", all = T)
+    dt.out <- merge(dt.out, gsMatrix, by = "sample", all = T)
     dt.out[is.na(dt.out)] <- 0
     
     if(length(cnvtypes) > 1){
@@ -261,7 +261,7 @@ CNVGlobalTest <- function(cnv.matrix, label, covariates, correctCNVCount = T, st
 
     for(feature in features){
       this.covariates <- covariates
-      if(feature == "gene_count" & correctCNVCount){
+      if(feature == paste("gene_count", cnvtype, sep="_") & correctCNVCount){
         this.covariates <- c(this.covariates, paste("cnv_count", cnvtype, sep="_"))
       }
       
