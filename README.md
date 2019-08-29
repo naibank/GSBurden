@@ -7,7 +7,7 @@ In current version, only CNVs analysis can be done using the package. A choice o
 The analysis can be done as demonstrated in example.R
 
 # Installation
-1. GSBurden requires R version 3.3 and later
+1. GSBurden requires R version 3.3 or later
 2. GSBurden requires GenomicRanges (>= 1.30.3), BiasedUrn (>= 1.07), MASS (>= 7.3-49), ordinal (>= 2018.8-25)
 3. Install the package through R script as below 
 
