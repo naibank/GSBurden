@@ -194,7 +194,7 @@ getCNVDupGSMatrix <- function(cnv.table, annotation.table, appris.transcript, ge
     
     th.olap$sample <- this.cnv.table$sample[th.olap$queryHits]
     cnvCount <- table(th.olap$sample[!duplicated(th.olap$queryHits)])
-    cnvSize <- aggregate(size ~ sample, this.cnv.table[unique(th.olap$queryHits)], sum)
+    cnvSize <- aggregate(size ~ sample, this.cnv.table[unique(th.olap$queryHits), ], sum)
     
     th.olap <- unique(th.olap[, c("sample", "enzid")])
     geneCount <- table(th.olap$sample)
