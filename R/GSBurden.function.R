@@ -312,7 +312,7 @@ CNVGlobalTest <- function(cnv.matrix, label, covariates, correctCNVCount = F, st
 #' @param correctGlobalBurden logical value to indicate whether the burden will be corrected for gene count or not: default (T)
 #' @param standardizeCoefficient logical value to indicate whether coefficient will be standardized or not: default (T)
 #' @param permutation logical value to indicate whether permutation is required or not: default (T)
-#' @param nperm numeric value to indicate number of iterations in permutation
+#' @param nperm numeric value to indicate number of iterations in permutation: default (100)
 #' @param BiasedUrn logical value to indicate whether BaisedUrn will be used to permute label or not: default (F)
 #' @keywords GSBurden
 #' @export
@@ -453,8 +453,10 @@ CNVBurdenTest <- function(cnv.matrix, geneset, label, covariates, correctGlobalB
       rec <- test.out[i, ]
       this.perm <- perm.test.pvalues[perm.test.pvalues$cnvtype == rec$type, ]
       
-      actual <- sum(test.out$pvalue[test.out$type == rec$type] <= rec$pvalue)/nrow(test.out[test.out$type == rec$type,])
-      perm <- sum(this.perm$pvalue <= rec$pvalue)/nrow(this.perm)
+      actual <- sum(test.out$pvalue[test.out$type == rec$type] <= rec$pvalue, na.rm = T)/
+        nrow(na.omit(test.out[test.out$type == rec$type,]))
+      perm <- sum(this.perm$pvalue <= rec$pvalue, na.rm = T)/
+        nrow(na.omit(this.perm))
       
       fdr <- ifelse(perm/actual > 1, 1, perm/actual)
 
@@ -464,7 +466,7 @@ CNVBurdenTest <- function(cnv.matrix, geneset, label, covariates, correctGlobalB
   
   test.out <- test.out[order(test.out$pvalue), ]
   for(i in 1:nrow(test.out)){
-    test.out$permFDR[i] <- min(test.out$permFDR[i:nrow(test.out)])
+    test.out$permFDR[i] <- min(test.out$permFDR[i:nrow(test.out)], na.rm = T)
   }
   
   list.out <- list(test.out, perm.test.pvalues)
@@ -472,17 +474,142 @@ CNVBurdenTest <- function(cnv.matrix, geneset, label, covariates, correctGlobalB
   return(list.out)
 }
 
+#'
+#' This function is to get a matrix of gene set count by sample (variant count).
+#' @param snv.table SNV table
+#' @param annotation.table gene annotation table
+#' @param geneset gene set object
+#' @keywords GSBurden
+#' @export
+getSNVGSMatrix <- function(snv.table, annotation.table, geneset){
+  all.out <- data.frame()
+  snvtypes <- unique(snv.table$type)
+  for(snvtype in snvtypes){
+    this.snv.table <- snv.table[snv.table$type == snvtype, ]
+    snv.g <- GenomicRanges::GRanges(this.snv.table$chr, IRanges::IRanges(this.snv.table$start, this.snv.table$end), "*")
+    annotation.g <- GenomicRanges::GRanges(annotation.table$chr, IRanges::IRanges(annotation.table$start, annotation.table$end), "*")
+    olap <- data.frame(IRanges::findOverlaps(snv.g, annotation.g))
+    olap$sample <- this.snv.table$sample[olap$queryHits]
+    olap$enzid <- annotation.table$enzid[olap$subjectHits]
+    
+    snvCount <- table(this.snv.table$sample[unique(olap$queryHits)])
+    
+    olap <- olap[!duplicated(olap$queryHits), c("sample", "enzid")]
+    geneCount <- table(olap$sample)
+    temp <- aggregate(enzid ~ sample, olap, c)
+    gsMatrix <- data.frame(t(sapply(temp$enzid, getGenesetCount, geneset)))
+    gsMatrix$sample <- temp$sample
+    
+    snvCount <- data.frame(sample = names(snvCount), snv_count = as.numeric(snvCount))
+    geneCount <- data.frame(sample = names(geneCount), gene_count = as.numeric(geneCount))
+    
+    dt.out <- merge(snvCount, geneCount, by = "sample", all = T)
+    dt.out <- merge(dt.out, gsMatrix, by = "sample", all = T)
+    dt.out[is.na(dt.out)] <- 0
+    
+    if(length(snvtypes) > 1){
+      names(dt.out)[-1] <- paste(names(dt.out)[-1], snvtype, sep="_")
+    }
+    
+    if(nrow(all.out) == 0){
+      all.out <- dt.out
+    }else{
+      all.out <- merge(all.out, dt.out, by = "sample", all = T)
+    }
+    
+    all.out[is.na(all.out)] <- 0
+  }
+  
+  message("Transform gene set count matrix successfully")
+  return(all.out)
+}
 
 #'
-#' This function is to test for geneset burden of gene count.
-#' @param snv.matrix SNV table containing samples' outcome, gene count, covariates (optional) and snv count (optional)
+#' This function is to test for global burden of gene count.
+#' @param snv.matrix SNV table containing samples' outcome, gene count, snv count for each gene set, covariates (optional) and total snv count 
+#' @param label variable name that is used as outcome
+#' @param covariates list of covariates to be used in the model
+#' @param correctSNVCount logical value to indicate whether the burden will be corrected for SNV count or not: default (F)
+#' @param standardizeCoefficient logical value to indicate whether coefficient will be standardized or not: default (T)
+#' @keywords GSBurden
+#' @export
+#' 
+SNVGlobalTest <- function(snv.matrix, label, covariates, correctSNVCount = F, standardizeCoefficient = T){
+  
+  distinct.prefixes <- names(snv.matrix)[grep("gene_count", names(snv.matrix))]
+  distinct.prefixes <- gsub(sprintf("%s_", "gene_count"), "", distinct.prefixes)
+  
+  model = "lm"
+  if(length(unique(snv.matrix[, label])) == 2){
+    message("dichotomous outcome variable detected. Logistic regression is being done ...")
+    model = "glm"
+  }else if(is.numeric(snv.matrix[, label])){
+    message("continuous outcome variable detected. Linear regression is being done ...")
+    model = "lm"
+  }else if(is.factor(snv.matrix[, label])){
+    message("ordinal outcome variable detected. Ordinal regression is being done ...")
+    model = "clm"
+  }else{
+    stop("Non dichotomous or continuous or ordinal outcome variable detected. The burden test cannot be run")
+  }
+  
+  test.out <- data.frame()
+  for(snvtype in distinct.prefixes){
+    features <- paste(c("gene_count", "snv_count"), snvtype, sep="_")
+    
+    for(feature in features){
+      this.covariates <- covariates
+      if(feature == paste("gene_count", snvtype, sep="_") & correctSNVCount){
+        this.covariates <- c(this.covariates, paste("snv_count", snvtype, sep="_"))
+      }
+      
+      ref.term <- sprintf("%s ~ %s", label, paste(this.covariates, collapse = " + "))
+      add.term <- sprintf("%s + %s", ref.term, feature)
+      
+      if(standardizeCoefficient){
+        snv.matrix[, feature] <- scale(snv.matrix[, feature])
+      }
+      
+      if(model == "lm"){
+        ref.model <- lm(ref.term, snv.matrix)
+        add.model <- lm(add.term, snv.matrix)
+        ano <- anova(ref.model, add.model, test = "Chisq")
+      }else if(model == "glm"){
+        ref.model <- glm(ref.term, snv.matrix, family = binomial(link = "logit"))
+        add.model <- glm(add.term, snv.matrix, family = binomial(link = "logit"))
+        ano <- anova(ref.model, add.model, test = "Chisq")
+      }else{
+        ref.model <- ordinal::clm(ref.term, data = snv.matrix)
+        add.model <- ordinal::clm(add.term, data = snv.matrix)
+        ano <- anova(ref.model, add.model)
+      }
+      
+      names(ano)[length(names(ano))] <- "pvalue"
+      pvalue <- ano$pvalue[2]
+      coefficient <- add.model$coefficients[feature]
+      intervals <- confint.default(add.model)
+      upperbound <- intervals[feature, "97.5 %"]
+      lowerbound <- intervals[feature, "2.5 %"]
+      
+      temp.out <- data.frame("global" = gsub(paste0("_", snvtype), "", feature), 
+                             "type" = snvtype, "coefficient" = coefficient, lowerbound, upperbound, "pvalue" = pvalue)
+      test.out <- rbind(test.out, temp.out)
+    }
+  }
+  
+  return(test.out)
+}
+
+#'
+#' This function is to test for geneset burden of snv count.
+#' @param snv.matrix SNV table containing samples' outcome, gene count, snv count for each gene set, covariates (optional) and total snv count 
 #' @param geneset a list of gene set, which each element contains a list of Entrez gene IDs
 #' @param label variable name that is used as outcome
 #' @param covariates list of covariates to be used in the model
 #' @param correctGlobalBurden logical value to indicate whether the burden will be corrected for SNV count or not: default (T)
 #' @param standardizeCoefficient logical value to indicate whether coefficient will be standardized or not: default (T)
 #' @param permutation logical value to indicate whether permutation is required or not: default (T)
-#' @param nperm numeric value to indicate number of iterations in permutation
+#' @param nperm numeric value to indicate number of iterations in permutation: default (100)
 #' @param BiasedUrn logical value to indicate whether BaisedUrn will be used to permute label or not: default (F)
 #' @keywords GSBurden
 #' @export
@@ -628,8 +755,8 @@ SNVBurdenTest <- function(snv.matrix, geneset, label, covariates, correctGlobalB
       rec <- test.out[i, ]
       this.perm <- perm.test.pvalues
       
-      actual <- sum(test.out$pvalue <= rec$pvalue)/nrow(test.out)
-      perm <- sum(this.perm$pvalue <= rec$pvalue)/nrow(this.perm)
+      actual <- sum(test.out$pvalue <= rec$pvalue, na.rm = T)/nrow(na.omit(test.out))
+      perm <- sum(this.perm$pvalue <= rec$pvalue, na.rm = T)/nrow(na.omit(this.perm))
       
       fdr <- ifelse(perm/actual > 1, 1, perm/actual)
       
@@ -639,7 +766,7 @@ SNVBurdenTest <- function(snv.matrix, geneset, label, covariates, correctGlobalB
   
   test.out <- test.out[order(test.out$pvalue), ]
   for(i in 1:nrow(test.out)){
-    test.out$permFDR[i] <- min(test.out$permFDR[i:nrow(test.out)])
+    test.out$permFDR[i] <- min(test.out$permFDR[i:nrow(test.out)], na.rm = T)
   }
   
   list.out <- list(test.out, perm.test.pvalues)
@@ -657,7 +784,7 @@ SNVBurdenTest <- function(snv.matrix, geneset, label, covariates, correctGlobalB
 #' @param covariates list of covariates to be used in the model
 #' @param geneset a list of gene set, which each element contains a list of Entrez gene IDs. If geneset parameter is specified, only genes in geneset will be tested
 #' @param permutation logical, doing permutation FDR or not: default (T)
-#' @param nperm number of permutation to be done
+#' @param nperm number of permutation to be done: default (100)
 #' @param nsubject minimum number of subjects with CNVs impacting the loci, required for a locus to be tested
 #' @param BiasedUrn logical value to indicate whether BaisedUrn will be used to permute label or not: default (F)
 #' @keywords GSBurden
