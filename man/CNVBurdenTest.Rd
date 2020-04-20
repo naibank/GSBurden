@@ -31,7 +31,7 @@ CNVBurdenTest(
 
 \item{permutation}{logical value to indicate whether permutation is required or not: default (T)}
 
-\item{nperm}{numeric value to indicate number of iterations in permutation}
+\item{nperm}{numeric value to indicate number of iterations in permutation: default (100)}
 
 \item{BiasedUrn}{logical value to indicate whether BaisedUrn will be used to permute label or not: default (F)}
 }

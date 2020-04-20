@@ -2,7 +2,7 @@
 % Please edit documentation in R/GSBurden.function.R
 \name{SNVBurdenTest}
 \alias{SNVBurdenTest}
-\title{This function is to test for geneset burden of gene count.}
+\title{This function is to test for geneset burden of snv count.}
 \usage{
 SNVBurdenTest(
   snv.matrix,
@@ -17,7 +17,7 @@ SNVBurdenTest(
 )
 }
 \arguments{
-\item{snv.matrix}{SNV table containing samples' outcome, gene count, covariates (optional) and snv count (optional)}
+\item{snv.matrix}{SNV table containing samples' outcome, gene count, snv count for each gene set, covariates (optional) and total snv count}
 
 \item{geneset}{a list of gene set, which each element contains a list of Entrez gene IDs}
 
@@ -31,11 +31,11 @@ SNVBurdenTest(
 
 \item{permutation}{logical value to indicate whether permutation is required or not: default (T)}
 
-\item{nperm}{numeric value to indicate number of iterations in permutation}
+\item{nperm}{numeric value to indicate number of iterations in permutation: default (100)}
 
 \item{BiasedUrn}{logical value to indicate whether BaisedUrn will be used to permute label or not: default (F)}
 }
 \description{
-This function is to test for geneset burden of gene count.
+This function is to test for geneset burden of snv count.
 }
 \keyword{GSBurden}

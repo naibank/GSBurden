@@ -32,7 +32,7 @@ CNVLociTest(
 
 \item{permutation}{logical, doing permutation FDR or not: default (T)}
 
-\item{nperm}{number of permutation to be done}
+\item{nperm}{number of permutation to be done: default (100)}
 
 \item{nsubject}{minimum number of subjects with CNVs impacting the loci, required for a locus to be tested}
 
