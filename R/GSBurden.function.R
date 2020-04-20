@@ -231,12 +231,12 @@ getCNVDupGSMatrix <- function(cnv.table, annotation.table, appris.transcript, ge
 #' @param cnv.matrix CNV table containing samples' outcome, gene count, covariates (optional) and cnv count (optional)
 #' @param label variable name that is used as outcome
 #' @param covariates list of covariates to be used in the model
-#' @param correctCNVCount logical value to indicate whether the burden will be corrected for CNV count or not
-#' @param standardizeCoefficient logical value to indicate whether coefficient will be standardized or not
+#' @param correctCNVCount logical value to indicate whether the burden will be corrected for CNV count or not: default (F)
+#' @param standardizeCoefficient logical value to indicate whether coefficient will be standardized or not: default (T)
 #' @keywords GSBurden
 #' @export
 #' 
-CNVGlobalTest <- function(cnv.matrix, label, covariates, correctCNVCount = T, standardizeCoefficient = T){
+CNVGlobalTest <- function(cnv.matrix, label, covariates, correctCNVCount = F, standardizeCoefficient = T){
   
   distinct.prefixes <- names(cnv.matrix)[grep("gene_count", names(cnv.matrix))]
   distinct.prefixes <- gsub(sprintf("%s_", "gene_count"), "", distinct.prefixes)
@@ -309,11 +309,11 @@ CNVGlobalTest <- function(cnv.matrix, label, covariates, correctCNVCount = T, st
 #' @param geneset a list of gene set, which each element contains a list of Entrez gene IDs
 #' @param label variable name that is used as outcome
 #' @param covariates list of covariates to be used in the model
-#' @param correctGlobalBurden logical value to indicate whether the burden will be corrected for CNV count or not
-#' @param standardizeCoefficient logical value to indicate whether coefficient will be standardized or not
-#' @param permutation logical value to indicate whether permutation is required or not
+#' @param correctGlobalBurden logical value to indicate whether the burden will be corrected for gene count or not: default (T)
+#' @param standardizeCoefficient logical value to indicate whether coefficient will be standardized or not: default (T)
+#' @param permutation logical value to indicate whether permutation is required or not: default (T)
 #' @param nperm numeric value to indicate number of iterations in permutation
-#' @param BiasedUrn logical value to indicate whether BaisedUrn will be used to permute label or not
+#' @param BiasedUrn logical value to indicate whether BaisedUrn will be used to permute label or not: default (F)
 #' @keywords GSBurden
 #' @export
 #' 
@@ -479,11 +479,11 @@ CNVBurdenTest <- function(cnv.matrix, geneset, label, covariates, correctGlobalB
 #' @param geneset a list of gene set, which each element contains a list of Entrez gene IDs
 #' @param label variable name that is used as outcome
 #' @param covariates list of covariates to be used in the model
-#' @param correctGlobalBurden logical value to indicate whether the burden will be corrected for SNV count or not
-#' @param standardizeCoefficient logical value to indicate whether coefficient will be standardized or not
-#' @param permutation logical value to indicate whether permutation is required or not
+#' @param correctGlobalBurden logical value to indicate whether the burden will be corrected for SNV count or not: default (T)
+#' @param standardizeCoefficient logical value to indicate whether coefficient will be standardized or not: default (T)
+#' @param permutation logical value to indicate whether permutation is required or not: default (T)
 #' @param nperm numeric value to indicate number of iterations in permutation
-#' @param BiasedUrn logical value to indicate whether BaisedUrn will be used to permute label or not
+#' @param BiasedUrn logical value to indicate whether BaisedUrn will be used to permute label or not: default (F)
 #' @keywords GSBurden
 #' @export
 #' 
@@ -656,10 +656,10 @@ SNVBurdenTest <- function(snv.matrix, geneset, label, covariates, correctGlobalB
 #' @param label variable name that is used as outcome
 #' @param covariates list of covariates to be used in the model
 #' @param geneset a list of gene set, which each element contains a list of Entrez gene IDs. If geneset parameter is specified, only genes in geneset will be tested
-#' @param permutation logical, doing permutation FDR or not
+#' @param permutation logical, doing permutation FDR or not: default (T)
 #' @param nperm number of permutation to be done
 #' @param nsubject minimum number of subjects with CNVs impacting the loci, required for a locus to be tested
-#' @param BiasedUrn logical value to indicate whether BaisedUrn will be used to permute label or not
+#' @param BiasedUrn logical value to indicate whether BaisedUrn will be used to permute label or not: default (F)
 #' @keywords GSBurden
 #' @export
 #' 
