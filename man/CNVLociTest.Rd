@@ -4,9 +4,18 @@
 \alias{CNVLociTest}
 \title{This function is for loci test.}
 \usage{
-CNVLociTest(cnv.table, cnv.matrix, annotation.table, label, covariates,
-  geneset = list(), permutation = T, nperm = 100, nsubject = 3,
-  BiasedUrn = F)
+CNVLociTest(
+  cnv.table,
+  cnv.matrix,
+  annotation.table,
+  label,
+  covariates,
+  geneset = list(),
+  permutation = T,
+  nperm = 100,
+  nsubject = 3,
+  BiasedUrn = F
+)
 }
 \arguments{
 \item{cnv.table}{CNV table}
@@ -21,13 +30,13 @@ CNVLociTest(cnv.table, cnv.matrix, annotation.table, label, covariates,
 
 \item{geneset}{a list of gene set, which each element contains a list of Entrez gene IDs. If geneset parameter is specified, only genes in geneset will be tested}
 
-\item{permutation}{logical, doing permutation FDR or not}
+\item{permutation}{logical, doing permutation FDR or not: default (T)}
 
 \item{nperm}{number of permutation to be done}
 
 \item{nsubject}{minimum number of subjects with CNVs impacting the loci, required for a locus to be tested}
 
-\item{BiasedUrn}{logical value to indicate whether BaisedUrn will be used to permute label or not}
+\item{BiasedUrn}{logical value to indicate whether BaisedUrn will be used to permute label or not: default (F)}
 }
 \description{
 This function is for loci test.

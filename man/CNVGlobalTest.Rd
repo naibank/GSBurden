@@ -4,8 +4,13 @@
 \alias{CNVGlobalTest}
 \title{This function is to test for global burden of gene count.}
 \usage{
-CNVGlobalTest(cnv.matrix, label, covariates, correctCNVCount = T,
-  standardizeCoefficient = T)
+CNVGlobalTest(
+  cnv.matrix,
+  label,
+  covariates,
+  correctCNVCount = F,
+  standardizeCoefficient = T
+)
 }
 \arguments{
 \item{cnv.matrix}{CNV table containing samples' outcome, gene count, covariates (optional) and cnv count (optional)}
@@ -14,9 +19,9 @@ CNVGlobalTest(cnv.matrix, label, covariates, correctCNVCount = T,
 
 \item{covariates}{list of covariates to be used in the model}
 
-\item{correctCNVCount}{logical value to indicate whether the burden will be corrected for CNV count or not}
+\item{correctCNVCount}{logical value to indicate whether the burden will be corrected for CNV count or not: default (F)}
 
-\item{standardizeCoefficient}{logical value to indicate whether coefficient will be standardized or not}
+\item{standardizeCoefficient}{logical value to indicate whether coefficient will be standardized or not: default (T)}
 }
 \description{
 This function is to test for global burden of gene count.
