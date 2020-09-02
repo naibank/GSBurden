@@ -116,26 +116,36 @@ getCNVGSMatrix <- function(cnv.table, annotation.table, geneset){
     olap <- data.frame(IRanges::findOverlaps(cnv.g, annotation.g))
     olap$sample <- this.cnv.table$sample[olap$queryHits]
     olap$enzid <- annotation.table$enzid[olap$subjectHits]
-
-    cnvCount <- table(this.cnv.table$sample[unique(olap$queryHits)])
-
-    olap <- unique(olap[, c("sample", "enzid")])
-    geneCount <- table(olap$sample)
-    temp <- aggregate(enzid ~ sample, olap, c)
-    gsMatrix <- data.frame(t(sapply(temp$enzid, getGenesetCount, geneset)))
-    gsMatrix$sample <- temp$sample
-
+    cnvCount <- table(this.cnv.table$sample)
     cnvCount <- data.frame(sample = names(cnvCount), cnv_count = as.numeric(cnvCount))
-    geneCount <- data.frame(sample = names(geneCount), gene_count = as.numeric(geneCount))
     names(cnvSize) <- c("sample", "cnv_size")
 
-    dt.out <- merge(cnvCount, geneCount, by = "sample", all = T)
-    dt.out <- merge(dt.out, cnvSize, by = "sample", all = T)
-    dt.out <- merge(dt.out, gsMatrix, by = "sample", all = T)
-    dt.out[is.na(dt.out)] <- 0
+    dt.out <- merge(cnvCount, cnvSize, by = "sample", all = T)
 
-    names(dt.out)[-1] <- paste(names(dt.out)[-1], cnvtype, sep="_")
-
+    if(nrow(olap) > 0){
+      # cnvCount <- table(this.cnv.table$sample[unique(olap$queryHits)])
+      
+      olap <- unique(olap[, c("sample", "enzid")])
+      geneCount <- table(olap$sample)
+      temp <- aggregate(enzid ~ sample, olap, c)
+      gsMatrix <- data.frame(t(sapply(temp$enzid, getGenesetCount, geneset)))
+      gsMatrix$sample <- temp$sample
+      
+      geneCount <- data.frame(sample = names(geneCount), gene_count = as.numeric(geneCount))
+      
+      dt.out <- merge(dt.out, geneCount, by = "sample", all = T)
+      dt.out <- merge(dt.out, gsMatrix, by = "sample", all = T)
+      dt.out[is.na(dt.out)] <- 0
+    }else{
+      dt.out[is.na(dt.out)] <- 0
+      dt.out[, c("gene_count")] <- 0
+      dt.out[, names(geneset)] <- 0
+    }
+    
+    if(length(cnvtypes) > 1){
+      names(dt.out)[-1] <- paste(names(dt.out)[-1], cnvtype, sep="_")
+    }
+    
     if(nrow(all.out) == 0){
       all.out <- dt.out
     }else{
@@ -490,23 +500,32 @@ getSNVGSMatrix <- function(snv.table, annotation.table, geneset){
     olap$sample <- this.snv.table$sample[olap$queryHits]
     olap$enzid <- annotation.table$enzid[olap$subjectHits]
 
-    snvCount <- table(this.snv.table$sample[unique(olap$queryHits)])
-
-    olap <- olap[!duplicated(olap$queryHits), c("sample", "enzid")]
-    geneCount <- table(olap$sample)
-    temp <- aggregate(enzid ~ sample, olap, c)
-    gsMatrix <- data.frame(t(sapply(temp$enzid, getGenesetCount, geneset)))
-    gsMatrix$sample <- temp$sample
-
+    snvCount <- table(this.snv.table$sample)
     snvCount <- data.frame(sample = names(snvCount), snv_count = as.numeric(snvCount))
-    geneCount <- data.frame(sample = names(geneCount), gene_count = as.numeric(geneCount))
+    
+    if(nrow(olap) > 0){
 
-    dt.out <- merge(snvCount, geneCount, by = "sample", all = T)
-    dt.out <- merge(dt.out, gsMatrix, by = "sample", all = T)
-    dt.out[is.na(dt.out)] <- 0
+      olap <- olap[!duplicated(olap$queryHits), c("sample", "enzid")]
+      geneCount <- table(olap$sample)
+      temp <- aggregate(enzid ~ sample, olap, c)
+      gsMatrix <- data.frame(t(sapply(temp$enzid, getGenesetCount, geneset)))
+      gsMatrix$sample <- temp$sample
 
-    names(dt.out)[-1] <- paste(names(dt.out)[-1], snvtype, sep="_")
+      geneCount <- data.frame(sample = names(geneCount), gene_count = as.numeric(geneCount))
 
+      dt.out <- merge(snvCount, geneCount, by = "sample", all = T)
+      dt.out <- merge(dt.out, gsMatrix, by = "sample", all = T)
+      dt.out[is.na(dt.out)] <- 0
+    }else{
+      dt.out <- snvCount
+      dt.out[, c("gene_count", names(geneset))] <- 0
+      dt.out[is.na(dt.out)] <- 0
+    }
+
+    
+    if(length(snvtypes) > 1){
+      names(dt.out)[-1] <- paste(names(dt.out)[-1], snvtype, sep="_")
+    }
 
     if(nrow(all.out) == 0){
       all.out <- dt.out
