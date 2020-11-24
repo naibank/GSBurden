@@ -18,4 +18,4 @@ install_github("naibank/GSBurden")
 # Note on CNV loci test
 The test is done in a gene-based fashion. However, as CNVs oftenly overlap multiple genes, the loci are merged if 75% of the overlapped CNVs are common between loci. See image below for an example.
 
-![alt text](http://url/to/img.png)
+![Loci test](https://github.com/naibank/GSBurden/blob/master/material/loci%20test.jpg)
