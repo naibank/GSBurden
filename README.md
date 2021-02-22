@@ -15,8 +15,8 @@ library(devtools)
 
 install_github("naibank/GSBurden")
 
-# Any data preprocessing steps of CNVs/SNVs data are not included in the library. 
-# For CNVs, it is advisible that large CNVs (i.e. size > 3MB) and CNVs significantly overlapped segmental duplications (i.e. > 70% overlap) be excluded from the analysis. 
+**Any data preprocessing steps of CNVs/SNVs data are not included in the library. 
+**For CNVs, it is advisible that large CNVs (i.e. size > 3MB) and CNVs significantly overlapped segmental duplications (i.e. > 70% overlap) be excluded from the analysis. 
 
 # Notes on CNV loci test
 The test is done in a gene-based fashion. However, as CNVs oftenly overlap multiple genes, the loci are merged if 75% of the overlapped CNVs are common between loci. See image below for an example.
