@@ -1007,7 +1007,7 @@ CNVLociTest <- function(cnv.table, cnv.matrix, annotation.table, label, covariat
     final.out <- rbind(final.out, dt.out.merge)
   }
 
-  names(final.out)[2:3] <- c("loci.start", "loci.end")
+  #names(final.out)[2:3] <- c("loci.start", "loci.end")
   return(final.out)
 }
 
