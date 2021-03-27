@@ -297,7 +297,7 @@ CNVGlobalTest <- function(cnv.matrix, label, covariates, correctCNVCount = F, st
       names(ano)[length(names(ano))] <- "pvalue"
       pvalue <- ano$pvalue[2]
       coefficient <- add.model$coefficients[feature]
-      intervals <- confint.default(add.model)
+      intervals <- confint(add.model)
       upperbound <- intervals[feature, "97.5 %"]
       lowerbound <- intervals[feature, "2.5 %"]
 
@@ -410,16 +410,18 @@ CNVBurdenTest <- function(cnv.matrix, geneset, label, covariates, correctGlobalB
       names(ano)[length(names(ano))] <- "pvalue"
       pvalue <- ano$pvalue[2]
       coefficient <- add.model$coefficients[feature]
-      conf <- tryCatch({confint.default(add.model)},
-               error = function(e){return(NA)})
+      conf <- confint(add.model) 
+      
+      #tryCatch({confint.default(add.model)},
+      #         error = function(e){return(NA)})
 
-      if(is.na(conf)){
-        coeff.l <- 0
-        coeff.u <- 0
-      }else{
+      #if(is.na(conf)){
+      #  coeff.l <- 0
+      #  coeff.u <- 0
+      #}else{
         coeff.l <- conf[feature, 1]
         coeff.u <- conf[feature, 2]
-      }
+      #}
 
 
       temp.out <- data.frame("geneset" = this.gs, "type" = cnvtype, "coefficient" = coefficient,
@@ -603,7 +605,7 @@ SNVGlobalTest <- function(snv.matrix, label, covariates, correctSNVCount = F, st
       names(ano)[length(names(ano))] <- "pvalue"
       pvalue <- ano$pvalue[2]
       coefficient <- add.model$coefficients[feature]
-      intervals <- confint.default(add.model)
+      intervals <- confint(add.model)
       upperbound <- intervals[feature, "97.5 %"]
       lowerbound <- intervals[feature, "2.5 %"]
 
@@ -717,16 +719,15 @@ SNVBurdenTest <- function(snv.matrix, geneset, label, covariates, correctGlobalB
     names(ano)[length(names(ano))] <- "pvalue"
     pvalue <- ano$pvalue[2]
     coefficient <- add.model$coefficients[feature]
-    conf <- tryCatch({confint.default(add.model)},
-                     error = function(e){return(NA)})
+    conf <- confint(add.model)
 
-    if(is.na(conf)){
-      coeff.l <- 0
-      coeff.u <- 0
-    }else{
+    #if(is.na(conf)){
+    #  coeff.l <- 0
+    #  coeff.u <- 0
+    #}else{
       coeff.l <- conf[feature, 1]
       coeff.u <- conf[feature, 2]
-    }
+    #}
 
     temp.out <- data.frame()
     for(th.feat in feature){
