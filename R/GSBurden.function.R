@@ -410,9 +410,7 @@ CNVBurdenTest <- function(cnv.matrix, geneset, label, covariates, correctGlobalB
       names(ano)[length(names(ano))] <- "pvalue"
       pvalue <- ano$pvalue[2]
       coefficient <- add.model$coefficients[feature]
-      conf <- confint(add.model) 
-      
-      tryCatch({confint.default(add.model)},
+      conf <- tryCatch({confint(add.model)},
                error = function(e){return(NA)})
 
       if(is.na(conf)){
