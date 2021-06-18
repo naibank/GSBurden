@@ -412,16 +412,16 @@ CNVBurdenTest <- function(cnv.matrix, geneset, label, covariates, correctGlobalB
       coefficient <- add.model$coefficients[feature]
       conf <- confint(add.model) 
       
-      #tryCatch({confint.default(add.model)},
-      #         error = function(e){return(NA)})
+      tryCatch({confint.default(add.model)},
+               error = function(e){return(NA)})
 
-      #if(is.na(conf)){
-      #  coeff.l <- 0
-      #  coeff.u <- 0
-      #}else{
+      if(is.na(conf)){
+        coeff.l <- 0
+        coeff.u <- 0
+      }else{
         coeff.l <- conf[feature, 1]
         coeff.u <- conf[feature, 2]
-      #}
+      }
 
 
       temp.out <- data.frame("geneset" = this.gs, "type" = cnvtype, "coefficient" = coefficient,
