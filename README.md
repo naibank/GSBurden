@@ -1,8 +1,8 @@
 # GSBurden
 
-GSBurden is an R package for gene-set enrichment analysis of human variants (CNVs, SNVs and Indels). The package offers tools to do global burden analysis (testing of number of genes impacted by CNVs), gene-set burden analysis (testing of number of genes in a gene-set) and loci testing (testing of association loci).
+GSBurden is an R package for genotype-phenotype gene-set enrichment analysis of several genomic variants (CNVs, SNVs and Indels). The package offers tools to do global burden analysis (testing of the number of genes impacted by CNVs or the number of CNVs), gene-set burden analysis (testing of the number of genes within a gene-set) and loci testing (testing of a genomic locus).
 
-In current version, only CNVs analysis can be done using the package (SNVs analysis can also be done but the pipeline is being tested). A choice of two models (linear regression and logistic regression) is automatically selected based on outcome variable in the data. Permutation test is done as default but can be disabled to make it faster. BiasedUrn label permutation is utilized to incorporate covariates in label permutation. 
+In current version, only CNVs analysis can be done using the package (SNVs analysis can also be done but the pipeline is being tested). A choice of three models (linear regression, logistic regression and ordinal logistic regression) is automatically selected based on the given outcome variable in the data. Permutation test is done as default but can be disabled to make it faster. BiasedUrn label permutation could also be utilized to incorporate covariates in the label permutation. 
 
 The analysis can be done as demonstrated in example.R
 
