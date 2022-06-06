@@ -300,8 +300,14 @@ CNVGlobalTest <- function(cnv.matrix, label, covariates, correctCNVCount = F, st
       upperbound <- intervals[feature, "97.5 %"]
       lowerbound <- intervals[feature, "2.5 %"]
       
+      sm <- summary(add.model)
+      
+      waldp <- sm$coefficients[feature, 4]
+      stderr <- sm$coefficients[feature, 2]
+      testval <- sm$coefficients[feature, 3]
+      
       temp.out <- data.frame("global" = gsub(paste0("_", cnvtype), "", feature),
-                             "type" = cnvtype, "coefficient" = coefficient, lowerbound, upperbound, "pvalue" = pvalue)
+                             "type" = cnvtype, "coefficient" = coefficient, lowerbound, upperbound, "pvalue" = pvalue, stderr, testval, waldp)
       test.out <- rbind(test.out, temp.out)
     }
   }
@@ -409,6 +415,12 @@ CNVBurdenTest <- function(cnv.matrix, geneset, label, covariates, correctGlobalB
       names(ano)[length(names(ano))] <- "pvalue"
       pvalue <- ano$pvalue[2]
       coefficient <- add.model$coefficients[feature]
+      sm <- summary(add.model)
+      
+      waldp <- sm$coefficients[feature, 4]
+      stderr <- sm$coefficients[feature, 2]
+      testval <- sm$coefficients[feature, 3]
+      
       conf <- tryCatch({confint(add.model)},
                        error = function(e){return(NA)})
       
@@ -422,7 +434,7 @@ CNVBurdenTest <- function(cnv.matrix, geneset, label, covariates, correctGlobalB
       
       
       temp.out <- data.frame("geneset" = this.gs, "type" = cnvtype, "coefficient" = coefficient,
-                             "coeff.upper" = coeff.u, "coeff.lower" = coeff.l, "pvalue" = pvalue)
+                             "coeff.upper" = coeff.u, "coeff.lower" = coeff.l, "pvalue" = pvalue, stderr, testval, waldp)
       test.out <- rbind(test.out, temp.out)
       
       if(permutation){
@@ -490,13 +502,13 @@ CNVBurdenTest <- function(cnv.matrix, geneset, label, covariates, correctGlobalB
 getSNVGSMatrix <- function(snv.table, geneset){
   all.out <- data.frame()
   snvtypes <- unique(snv.table$type)
-
+  
   for(snvtype in snvtypes){
     this.snv.table <- snv.table[snv.table$type == snvtype, ]
     
     snvCount <- data.frame(table(this.snv.table$sample[!duplicated(this.snv.table$varid)]))
     names(snvCount) <- c("sample", sprintf("Total_%s", snvtype))
-
+    
     for(gs in 1:length(geneset)){
       snvtmp <- this.snv.table[this.snv.table$entrez_id %in% geneset[[gs]], ]
       
@@ -590,9 +602,14 @@ SNVGlobalTest <- function(snv.matrix, label, covariates, correctSNVCount = F, st
       intervals <- confint(add.model)
       upperbound <- intervals[feature, "97.5 %"]
       lowerbound <- intervals[feature, "2.5 %"]
+      sm <- summary(add.model)
+      
+      waldp <- sm$coefficients[feature, 4]
+      stderr <- sm$coefficients[feature, 2]
+      testval <- sm$coefficients[feature, 3]
       
       temp.out <- data.frame("global" = gsub(paste0("_", snvtype), "", feature),
-                             "type" = snvtype, "coefficient" = coefficient, lowerbound, upperbound, "pvalue" = pvalue)
+                             "type" = snvtype, "coefficient" = coefficient, lowerbound, upperbound, "pvalue" = pvalue, stderr, testval, waldp)
       test.out <- rbind(test.out, temp.out)
     }
   }
@@ -699,6 +716,12 @@ SNVBurdenTest <- function(snv.matrix, geneset, label, covariates, correctGlobalB
       names(ano)[length(names(ano))] <- "pvalue"
       pvalue <- ano$pvalue[2]
       coefficient <- add.model$coefficients[feature]
+      sm <- summary(add.model)
+      
+      waldp <- sm$coefficients[feature, 4]
+      stderr <- sm$coefficients[feature, 2]
+      testval <- sm$coefficients[feature, 3]
+      
       conf <- tryCatch({confint(add.model)},
                        error = function(e){return(NA)})
       
@@ -712,7 +735,7 @@ SNVBurdenTest <- function(snv.matrix, geneset, label, covariates, correctGlobalB
       
       
       temp.out <- data.frame("geneset" = this.gs, "type" = snvtype, "coefficient" = coefficient,
-                             "coeff.upper" = coeff.u, "coeff.lower" = coeff.l, "pvalue" = pvalue)
+                             "coeff.upper" = coeff.u, "coeff.lower" = coeff.l, "pvalue" = pvalue, stderr, testval, waldp)
       test.out <- rbind(test.out, temp.out)
       
       if(permutation){
@@ -910,10 +933,15 @@ CNVLociTest <- function(cnv.table, cnv.matrix, annotation.table, label, covariat
       names(ano)[length(names(ano))] <- "pvalue"
       pvalue <- ano$pvalue[2]
       coefficient <- add.model$coefficients["gene_count"]
+      sm <- summary(add.model)
+      
+      waldp <- sm$coefficients["gene_count", 4]
+      stderr <- sm$coefficients["gene_count", 2]
+      testval <- sm$coefficients["gene_count", 3]
       
       temp.out <- data.frame("enzid" = this.loci$enzid, "chr" = this.loci$chr, "start" = this.loci$start,
                              "end" = this.loci$end, "gsymbol" = this.loci$gsymbol,
-                             "type" = cnvtype, "coefficient" = coefficient, "pvalue" = pvalue,
+                             "type" = cnvtype, "coefficient" = coefficient, "pvalue" = pvalue, stderr, testval, waldp,
                              "sampleid" = this.loci$sample,
                              "gene.start" = this.loci$gene.start,
                              "gene.end" = this.loci$gene.end,
@@ -1043,9 +1071,13 @@ mergeLoci <- function(test.table, pvalue.column){
             sampleid <- paste(unique(strsplit(paste(test.out$sampleid[olap.rec$queryHits], test.out$sampleid[olap.rec$subjectHits],sep=","),",")[[1]]), collapse = ",")
             pvalue <- which.min(test.out$pvalue[c(olap.rec$queryHits, olap.rec$subjectHits)])
             coefficient <- test.out$coefficient[c(olap.rec$queryHits, olap.rec$subjectHits)][which.min(test.out$pvalue[c(olap.rec$queryHits, olap.rec$subjectHits)])]
+            stderr <- test.out$coefficient[c(olap.rec$queryHits, olap.rec$subjectHits)][which.min(test.out$pvalue[c(olap.rec$queryHits, olap.rec$subjectHits)])]
+            testval <- test.out$coefficient[c(olap.rec$queryHits, olap.rec$subjectHits)][which.min(test.out$pvalue[c(olap.rec$queryHits, olap.rec$subjectHits)])]
+            waldp <- test.out$coefficient[c(olap.rec$queryHits, olap.rec$subjectHits)][which.min(test.out$pvalue[c(olap.rec$queryHits, olap.rec$subjectHits)])]
             pvalue <- min(test.out$pvalue[c(olap.rec$queryHits, olap.rec$subjectHits)])
             
-            merge.test <- data.frame(enzid, chr, start, end, gene.start, gene.end, gsymbol, type, coefficient, sampleid, pvalue)
+            merge.test <- data.frame(enzid, chr, start, end, gene.start, gene.end, gsymbol, type, coefficient, sampleid, pvalue, stderr,
+                                     testval, waldp)
             test.out <- rbind(test.out, merge.test)
             
             remove.test <- c(remove.test, olap.rec$queryHits, olap.rec$subjectHits)
@@ -1068,5 +1100,3 @@ mergeLoci <- function(test.table, pvalue.column){
   message("Loci testing done!")
   return(test.out)
 }
-
-
