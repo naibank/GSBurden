@@ -302,9 +302,13 @@ CNVGlobalTest <- function(cnv.matrix, label, covariates, correctCNVCount = F, st
       
       sm <- summary(add.model)
       
-      waldp <- sm$coefficients[feature, 4]
-      stderr <- sm$coefficients[feature, 2]
-      testval <- sm$coefficients[feature, 3]
+      if(feature %in% rownames(sm$coefficients)){
+        waldp <- sm$coefficients[feature, 4]
+        stderr <- sm$coefficients[feature, 2]
+        testval <- sm$coefficients[feature, 3]
+      }else{
+        waldp <- stderr <- testval <- NA
+      }
       
       temp.out <- data.frame("global" = gsub(paste0("_", cnvtype), "", feature),
                              "type" = cnvtype, "coefficient" = coefficient, lowerbound, upperbound, "pvalue" = pvalue, stderr, testval, waldp)
@@ -417,9 +421,13 @@ CNVBurdenTest <- function(cnv.matrix, geneset, label, covariates, correctGlobalB
       coefficient <- add.model$coefficients[feature]
       sm <- summary(add.model)
       
-      waldp <- sm$coefficients[feature, 4]
-      stderr <- sm$coefficients[feature, 2]
-      testval <- sm$coefficients[feature, 3]
+      if(feature %in% rownames(sm$coefficients)){
+        waldp <- sm$coefficients[feature, 4]
+        stderr <- sm$coefficients[feature, 2]
+        testval <- sm$coefficients[feature, 3]
+      }else{
+        waldp <- stderr <- testval <- NA
+      }
       
       conf <- tryCatch({confint(add.model)},
                        error = function(e){return(NA)})
@@ -604,9 +612,13 @@ SNVGlobalTest <- function(snv.matrix, label, covariates, correctSNVCount = F, st
       lowerbound <- intervals[feature, "2.5 %"]
       sm <- summary(add.model)
       
-      waldp <- sm$coefficients[feature, 4]
-      stderr <- sm$coefficients[feature, 2]
-      testval <- sm$coefficients[feature, 3]
+      if(feature %in% rownames(sm$coefficients)){
+        waldp <- sm$coefficients[feature, 4]
+        stderr <- sm$coefficients[feature, 2]
+        testval <- sm$coefficients[feature, 3]
+      }else{
+        waldp <- stderr <- testval <- NA
+      }
       
       temp.out <- data.frame("global" = gsub(paste0("_", snvtype), "", feature),
                              "type" = snvtype, "coefficient" = coefficient, lowerbound, upperbound, "pvalue" = pvalue, stderr, testval, waldp)
@@ -718,9 +730,13 @@ SNVBurdenTest <- function(snv.matrix, geneset, label, covariates, correctGlobalB
       coefficient <- add.model$coefficients[feature]
       sm <- summary(add.model)
       
-      waldp <- sm$coefficients[feature, 4]
-      stderr <- sm$coefficients[feature, 2]
-      testval <- sm$coefficients[feature, 3]
+      if(feature %in% rownames(sm$coefficients)){
+        waldp <- sm$coefficients[feature, 4]
+        stderr <- sm$coefficients[feature, 2]
+        testval <- sm$coefficients[feature, 3]
+      }else{
+        waldp <- stderr <- testval <- NA
+      }
       
       conf <- tryCatch({confint(add.model)},
                        error = function(e){return(NA)})
@@ -935,9 +951,13 @@ CNVLociTest <- function(cnv.table, cnv.matrix, annotation.table, label, covariat
       coefficient <- add.model$coefficients["gene_count"]
       sm <- summary(add.model)
       
-      waldp <- sm$coefficients["gene_count", 4]
-      stderr <- sm$coefficients["gene_count", 2]
-      testval <- sm$coefficients["gene_count", 3]
+      if("gene_count" %in% rownames(sm$coefficients)){
+        waldp <- sm$coefficients["gene_count", 4]
+        stderr <- sm$coefficients["gene_count", 2]
+        testval <- sm$coefficients["gene_count", 3]
+      }else{
+        waldp <- stderr <- testval <- NA
+      }
       
       temp.out <- data.frame("enzid" = this.loci$enzid, "chr" = this.loci$chr, "start" = this.loci$start,
                              "end" = this.loci$end, "gsymbol" = this.loci$gsymbol,
