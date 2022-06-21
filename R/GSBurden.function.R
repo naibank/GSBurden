@@ -432,7 +432,7 @@ CNVBurdenTest <- function(cnv.matrix, geneset, label, covariates, correctGlobalB
       conf <- tryCatch({confint(add.model)},
                        error = function(e){return(NA)})
       
-      if(is.na(conf)){
+      if(is.null(nrow(conf))){
         coeff.l <- 0
         coeff.u <- 0
       }else{
@@ -741,7 +741,7 @@ SNVBurdenTest <- function(snv.matrix, geneset, label, covariates, correctGlobalB
       conf <- tryCatch({confint(add.model)},
                        error = function(e){return(NA)})
       
-      if(is.na(conf)){
+      if(is.null(nrow(conf))){
         coeff.l <- 0
         coeff.u <- 0
       }else{
