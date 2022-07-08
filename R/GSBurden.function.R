@@ -1079,7 +1079,7 @@ mergeLoci <- function(test.table, pvalue.column){
         subject2 <- unique(strsplit(as.character(test.out$sampleid[olap.rec$subjectHits]), ",")[[1]])
         
         if(!(olap.rec$queryHits %in% remove.test | olap.rec$queryHits %in% remove.test)){
-          if(length(intersect(subject1, subject2))/length(union(subject1, subject2)) >= 0.75){
+          if(length(intersect(subject1, subject2))/length(union(subject1, subject2)) >= 0.8){
             enzid <- paste(unique(strsplit(paste(test.out$enzid[olap.rec$queryHits], test.out$enzid[olap.rec$subjectHits],sep=","),",")[[1]]), collapse = ",")
             chr <- test.out$chr[olap.rec$queryHits]
             start <- min(test.out$start[olap.rec$queryHits], test.out$start[olap.rec$subjectHits])
