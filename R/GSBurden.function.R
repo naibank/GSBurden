@@ -1049,7 +1049,7 @@ CNVLociTest <- function(cnv.table, cnv.matrix, annotation.table, label, covariat
 #' @export
 mergeLoci <- function(test.table, pvalue.column){
   test.table <- test.table[order(test.table[, pvalue.column]), ]
-  test.out <- test.table[, c(names(test.table)[c(1:7,9:ncol(test.table)], pvalue.column)]
+  test.out <- test.table[, c(names(test.table)[c(1:7,9:ncol(test.table))], pvalue.column)]
   names(test.out)[which(names(test.out) == pvalue.column)] <- "pvalue"
   
   mergable <- T
