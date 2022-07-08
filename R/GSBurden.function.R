@@ -1098,7 +1098,8 @@ mergeLoci <- function(test.table, pvalue.column){
             
             merge.test <- data.frame(enzid, chr, start, end, gene.start, gene.end, gsymbol, type, coefficient, sampleid, pvalue, stderr,
                                      testval, waldp)
-            test.out <- rbind(test.out, merge.test)
+            test.out <- rbind(test.out[, names(merge.test)], merge.test)
+
             
             remove.test <- c(remove.test, olap.rec$queryHits, olap.rec$subjectHits)
           }
