@@ -337,8 +337,8 @@ CNVGlobalTest <- function(cnv.matrix, label, covariates, correctCNVCount = F, st
 CNVBurdenTest <- function(cnv.matrix, geneset, label, covariates, correctGlobalBurden = T, standardizeCoefficient = T,
                           permutation = T, nperm = 100, BiasedUrn = F){
   
-  distinct.prefixes <- names(cnv.matrix)[grep(names(geneset)[1], names(cnv.matrix))]
-  distinct.prefixes <- gsub(sprintf("%s_", names(geneset)[1]), "", distinct.prefixes)
+  distinct.prefixes <- names(cnv.matrix)[grep("gene_count", names(cnv.matrix))]
+  distinct.prefixes <- gsub("gene_count_", "", distinct.prefixes)
   
   model = "lm"
   if(length(unique(cnv.matrix[, label])) == 2){
