@@ -389,11 +389,12 @@ CNVBurdenTest <- function(cnv.matrix, geneset, label, covariates, correctGlobalB
       
       feature <- sprintf("%s_%s", this.gs, cnvtype)
       global <- sprintf("gene_count_%s", cnvtype)
+      cnv.matrix$global <- cnv.matrix[, global] - cnv.matrix[, feature]
       
       this.covariates <- covariates
       if(correctGlobalBurden){
-        #this.covariates <- c(this.covariates, global)
-        this.covariates <- c(this.covariates, paste0("(",global,"-",feature,")"))
+        this.covariates <- c(this.covariates, "global")
+        #this.covariates <- c(this.covariates, paste0("(",global,"-",feature,")"))
 
       }
       
@@ -700,11 +701,12 @@ SNVBurdenTest <- function(snv.matrix, geneset, label, covariates, correctGlobalB
       
       feature <- sprintf("%s_%s", this.gs, snvtype)
       global <- sprintf("Total_%s", snvtype)
-      
+      snv.matrix$global <- cnv.matrix[, global] - cnv.matrix[, feature]
+
       this.covariates <- covariates
       if(correctGlobalBurden){
-        #this.covariates <- c(this.covariates, global)
-        this.covariates <- c(this.covariates, paste0("(",global,"-",feature,")"))
+        this.covariates <- c(this.covariates, "global")
+        #this.covariates <- c(this.covariates, paste0("(",global,"-",feature,")"))
       }
       
       ref.term <- sprintf("%s ~ %s", label, paste(this.covariates, collapse = " + "))
