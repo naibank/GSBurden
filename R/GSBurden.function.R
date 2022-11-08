@@ -400,6 +400,7 @@ CNVBurdenTest <- function(cnv.matrix, geneset, label, covariates, correctGlobalB
       
       ref.term <- sprintf("%s ~ %s", label, paste(this.covariates, collapse = " + "))
       add.term <- sprintf("%s + %s", ref.term, feature)
+      actual.coeff.term <- sprintf("%s ~ %s + %s", label, paste(covariates, collapse = " + "), feature)
       
       if(standardizeCoefficient & mean(cnv.matrix[, feature]) != 0 & sd(cnv.matrix[, feature]) != 0){
         cnv.matrix[, feature] <- scale(cnv.matrix[, feature])
@@ -408,20 +409,23 @@ CNVBurdenTest <- function(cnv.matrix, geneset, label, covariates, correctGlobalB
       if(model == "lm"){
         ref.model <- lm(ref.term, cnv.matrix)
         add.model <- lm(add.term, cnv.matrix)
+        act.model <- lm(actual.coeff.term, cnv.matrix)
         ano <- anova(ref.model, add.model, test = "Chisq")
       }else if(model == "glm"){
         ref.model <- glm(ref.term, cnv.matrix, family = binomial(link = "logit"))
         add.model <- glm(add.term, cnv.matrix, family = binomial(link = "logit"))
+        act.model <- glm(actual.coeff.term, cnv.matrix, family = binomial(link = "logit"))
         ano <- anova(ref.model, add.model, test = "Chisq")
       }else{
         ref.model <- ordinal::clm(ref.term, data = cnv.matrix)
         add.model <- ordinal::clm(add.term, data = cnv.matrix)
+        act.model <- ordinal::clm(actual.coeff.term, data = cnv.matrix)
         ano <- anova(ref.model, add.model)
       }
       
       names(ano)[length(names(ano))] <- "pvalue"
       pvalue <- ano$pvalue[2]
-      coefficient <- add.model$coefficients[feature]
+      coefficient <- act.model$coefficients[feature]
       sm <- summary(add.model)
       
       if(feature %in% rownames(sm$coefficients)){
@@ -432,7 +436,7 @@ CNVBurdenTest <- function(cnv.matrix, geneset, label, covariates, correctGlobalB
         waldp <- stderr <- testval <- NA
       }
       
-      conf <- tryCatch({confint(add.model)},
+      conf <- tryCatch({confint(act.model)},
                        error = function(e){return(NA)})
       
       if(is.null(nrow(conf))){
@@ -711,7 +715,8 @@ SNVBurdenTest <- function(snv.matrix, geneset, label, covariates, correctGlobalB
       
       ref.term <- sprintf("%s ~ %s", label, paste(this.covariates, collapse = " + "))
       add.term <- sprintf("%s + %s", ref.term, feature)
-      
+      actual.coeff.term <- sprintf("%s ~ %s + %s", label, paste(covariates, collapse = " + "), feature)
+
       if(standardizeCoefficient & mean(snv.matrix[, feature]) != 0 & sd(snv.matrix[, feature]) != 0){
         snv.matrix[, feature] <- scale(snv.matrix[, feature])
       }
@@ -719,20 +724,23 @@ SNVBurdenTest <- function(snv.matrix, geneset, label, covariates, correctGlobalB
       if(model == "lm"){
         ref.model <- lm(ref.term, snv.matrix)
         add.model <- lm(add.term, snv.matrix)
+        act.model <- lm(actual.coeff.term, snv.matrix)
         ano <- anova(ref.model, add.model, test = "Chisq")
       }else if(model == "glm"){
         ref.model <- glm(ref.term, snv.matrix, family = binomial(link = "logit"))
         add.model <- glm(add.term, snv.matrix, family = binomial(link = "logit"))
+        act.model <- glm(actual.coeff.term, snv.matrix, family = binomial(link = "logit"))
         ano <- anova(ref.model, add.model, test = "Chisq")
       }else{
         ref.model <- ordinal::clm(ref.term, data = snv.matrix)
         add.model <- ordinal::clm(add.term, data = snv.matrix)
+        act.model <- ordinal::clm(actual.coeff.term, data = snv.matrix)
         ano <- anova(ref.model, add.model)
       }
       
       names(ano)[length(names(ano))] <- "pvalue"
       pvalue <- ano$pvalue[2]
-      coefficient <- add.model$coefficients[feature]
+      coefficient <- act.model$coefficients[feature]
       sm <- summary(add.model)
       
       if(feature %in% rownames(sm$coefficients)){
@@ -743,7 +751,7 @@ SNVBurdenTest <- function(snv.matrix, geneset, label, covariates, correctGlobalB
         waldp <- stderr <- testval <- NA
       }
       
-      conf <- tryCatch({confint(add.model)},
+      conf <- tryCatch({confint(act.model)},
                        error = function(e){return(NA)})
       
       if(is.null(nrow(conf))){
