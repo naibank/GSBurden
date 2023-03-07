@@ -11,9 +11,7 @@ The analysis can be done as demonstrated in example.R
 2. GSBurden requires GenomicRanges (>= 1.30.3), BiasedUrn (>= 1.07), MASS (>= 7.3-49), ordinal (>= 2018.8-25)
 3. Install the package through R script as below 
 
-library(devtools)
-
-install_github("naibank/GSBurden")
+devtools::install_github("naibank/GSBurden")
 
 **Any data preprocessing steps of CNVs/SNVs data are not included in the library. 
 **For CNVs, it is advisible that large CNVs (i.e. size > 3MB) and CNVs significantly overlapped segmental duplications (i.e. > 70% overlap) be excluded from the analysis. 
