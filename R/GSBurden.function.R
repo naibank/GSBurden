@@ -327,6 +327,7 @@ CNVGlobalTest <- function(cnv.matrix, label, covariates, correctCNVCount = F, st
 #' @param label variable name that is used as outcome
 #' @param covariates list of covariates to be used in the model
 #' @param correctGlobalBurden logical value to indicate whether the burden will be corrected for gene count or not: default (T)
+#' @param correctTotal logical value to indicate whether the global burden should be corrected using total count or count outside gene set: default (T)
 #' @param standardizeCoefficient logical value to indicate whether coefficient will be standardized or not: default (T)
 #' @param permutation logical value to indicate whether permutation is required or not: default (T)
 #' @param nperm numeric value to indicate number of iterations in permutation: default (100)
@@ -334,7 +335,7 @@ CNVGlobalTest <- function(cnv.matrix, label, covariates, correctCNVCount = F, st
 #' @keywords GSBurden
 #' @export
 #'
-CNVBurdenTest <- function(cnv.matrix, geneset, label, covariates, correctGlobalBurden = T, standardizeCoefficient = T,
+CNVBurdenTest <- function(cnv.matrix, geneset, label, covariates, correctGlobalBurden = T, correctTotal = T, standardizeCoefficient = T,
                           permutation = T, nperm = 100, BiasedUrn = F){
   
   distinct.prefixes <- names(cnv.matrix)[grep("gene_count", names(cnv.matrix))]
@@ -389,7 +390,12 @@ CNVBurdenTest <- function(cnv.matrix, geneset, label, covariates, correctGlobalB
       
       feature <- sprintf("%s_%s", this.gs, cnvtype)
       global <- sprintf("gene_count_%s", cnvtype)
-      cnv.matrix$global <- cnv.matrix[, global] - cnv.matrix[, feature]
+      
+      if(correctTotal){
+        cnv.matrix$global <- cnv.matrix[, global]
+      }else{
+        cnv.matrix$global <- cnv.matrix[, global] - cnv.matrix[, feature]
+      }
       
       this.covariates <- covariates
       if(correctGlobalBurden){
@@ -641,6 +647,7 @@ SNVGlobalTest <- function(snv.matrix, label, covariates, correctSNVCount = F, st
 #' @param label variable name that is used as outcome
 #' @param covariates list of covariates to be used in the model
 #' @param correctGlobalBurden logical value to indicate whether the burden will be corrected for SNV count or not: default (T)
+#' @param correctTotal logical value to indicate whether the global burden should be corrected using total count or count outside gene set: default (T)
 #' @param standardizeCoefficient logical value to indicate whether coefficient will be standardized or not: default (T)
 #' @param permutation logical value to indicate whether permutation is required or not: default (T)
 #' @param nperm numeric value to indicate number of iterations in permutation: default (100)
@@ -648,7 +655,7 @@ SNVGlobalTest <- function(snv.matrix, label, covariates, correctSNVCount = F, st
 #' @keywords GSBurden
 #' @export
 #'
-SNVBurdenTest <- function(snv.matrix, geneset, label, covariates, correctGlobalBurden = T, standardizeCoefficient = T,
+SNVBurdenTest <- function(snv.matrix, geneset, label, covariates, correctGlobalBurden = T, correctTotal = T, standardizeCoefficient = T,
                           permutation = T, nperm = 100, BiasedUrn = F){
   
   distinct.prefixes <- names(snv.matrix)[grep("Total", names(snv.matrix))]
@@ -703,8 +710,12 @@ SNVBurdenTest <- function(snv.matrix, geneset, label, covariates, correctGlobalB
       
       feature <- sprintf("%s_%s", this.gs, snvtype)
       global <- sprintf("Total_%s", snvtype)
-      snv.matrix$global <- cnv.matrix[, global] - cnv.matrix[, feature]
-
+      
+      if(correctTotal){
+        snv.matrix$global <- snv.matrix[, global]
+      }else{
+        snv.matrix$global <- snv.matrix[, global] - snv.matrix[, feature]
+      }
       this.covariates <- covariates
       if(correctGlobalBurden){
         this.covariates <- c(this.covariates, "global")
