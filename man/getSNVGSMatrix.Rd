@@ -7,7 +7,7 @@
 getSNVGSMatrix(snv.table, geneset)
 }
 \arguments{
-\item{snv.table}{snv.table SNV table with sample(sample id), varid (unique variant id), entrez_id(entrez id) and type (type of snv)}
+\item{snv.table}{SNV table with sample(sample id), varid (unique variant id), entrez_id(entrez id) and type (type of snv)}
 
 \item{geneset}{gene set object}
 }

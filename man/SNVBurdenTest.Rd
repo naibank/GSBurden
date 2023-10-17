@@ -10,6 +10,7 @@ SNVBurdenTest(
   label,
   covariates,
   correctGlobalBurden = T,
+  correctTotal = T,
   standardizeCoefficient = T,
   permutation = T,
   nperm = 100,
@@ -26,6 +27,8 @@ SNVBurdenTest(
 \item{covariates}{list of covariates to be used in the model}
 
 \item{correctGlobalBurden}{logical value to indicate whether the burden will be corrected for SNV count or not: default (T)}
+
+\item{correctTotal}{logical value to indicate whether the global burden should be corrected using total count or count outside gene set: default (T)}
 
 \item{standardizeCoefficient}{logical value to indicate whether coefficient will be standardized or not: default (T)}
 
