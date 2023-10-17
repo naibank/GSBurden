@@ -4,12 +4,10 @@
 \alias{getSNVGSMatrix}
 \title{This function is to get a matrix of gene set count by sample (variant count).}
 \usage{
-getSNVGSMatrix(snv.table, annotation.table, geneset)
+getSNVGSMatrix(snv.table, geneset)
 }
 \arguments{
-\item{snv.table}{SNV table}
-
-\item{annotation.table}{gene annotation table}
+\item{snv.table}{snv.table SNV table with sample(sample id), varid (unique variant id), entrez_id(entrez id) and type (type of snv)}
 
 \item{geneset}{gene set object}
 }
