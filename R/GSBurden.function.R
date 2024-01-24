@@ -521,6 +521,7 @@ CNVBurdenTest <- function(cnv.matrix, geneset, label, covariates, correctGlobalB
 getSNVGSMatrix <- function(snv.table, geneset){
   all.out <- data.frame()
   snvtypes <- unique(snv.table$type)
+  snv.table$varid <- paste(snv.table$sample, snv.table$varid, sep="#")
   
   for(snvtype in snvtypes){
     this.snv.table <- snv.table[snv.table$type == snvtype, ]
