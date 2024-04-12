@@ -12,7 +12,7 @@ library(GSBurden)
 gs <- readGeneset("material/gs.table.tsv")
 
 #### or you can load RData with the format similar to the one below
-load("human_gsData_goincludingIEA100-1000_pathways15-500_20211125.RData")
+load("material/human_gsData_goincludingIEA100-1000_pathways15-500_20211125.RData")
 gs <- gsData.ls$gs2gene
 
 #### read cnvs ####
