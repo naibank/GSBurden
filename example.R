@@ -11,6 +11,10 @@ library(GSBurden)
 #### default separator is "\t" with header. If other separator is used, please define using parameter "sep".
 gs <- readGeneset("material/gs.table.tsv")
 
+#### or you can load RData with the format similar to the one below
+load("human_gsData_goincludingIEA100-1000_pathways15-500_20211125.RData")
+gs <- gsData.ls$gs2gene
+
 #### read cnvs ####
 #### any file format but need to have following information; 
 #### sample ID, location(chr, start, end) and type of CNVs (optional)
@@ -23,7 +27,7 @@ cnvs <- CNVSet(cnv.in$SID, cnv.in$chr, cnv.in$start, cnv.in$end, cnv.in$CNV)
 #### any file format but need to have following information;
 #### loction(chr, start, end) genesymbol and Entrez gene ID)
 #### each row represent a gene or an exon
-gene.in <- read.delim("material/hg19_exon_refGene.tsv", stringsAsFactors = F)
+gene.in <- read.delim("material/hg38_refGene_20200708.exon.txt", stringsAsFactors = F)
 genes <- GeneAnnotation(gene.in$entrezid, gene.in$chr, gene.in$start, gene.in$end, gene.in$genesymbol)
 
 #### get gene sets matrix ####
@@ -43,7 +47,7 @@ global.test.out <- CNVGlobalTest(cnv.matrix, "status", covariates)
 burden.test.out <- CNVBurdenTest(cnv.matrix, gs, "status", covariates, nperm = 20)$Test
 
 #### select significant geneset for loci test (optional) ####
-geneset <- gs[c("hi015", "TADA1000", "PhHs_MindFun_ADX", "hi035")]
+geneset <- gs[c("GO:0000018", "GO:0000075", "GO:0000082")]
 
 #### perform loci testing. In case you want to test all genes, remove geneset from the parameters ####
 loci.test.out <- CNVLociTest(cnvs, cnv.matrix, genes, "status", covariates,nperm = 20, nsubject = 1)
