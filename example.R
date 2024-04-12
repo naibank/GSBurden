@@ -44,7 +44,7 @@ covariates <- c("gender", "C1", "C2", "C3")
 
 #### perform global burden and gene set burden test ####
 global.test.out <- CNVGlobalTest(cnv.matrix, "status", covariates)
-burden.test.out <- CNVBurdenTest(cnv.matrix, gs, "status", covariates, nperm = 20)$Test
+burden.test.out <- CNVBurdenTest(cnv.matrix, gs, "status", covariates, nperm = 20, correctTotal=F)$Test #correctTotal=F is correcting for genes outside genesets, correctTotal=T is correcting for all the genes
 
 #### select significant geneset for loci test (optional) ####
 geneset <- gs[c("GO:0000018", "GO:0000075", "GO:0000082")]
