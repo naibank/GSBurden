@@ -27,7 +27,7 @@ cnvs <- CNVSet(cnv.in$SID, cnv.in$chr, cnv.in$start, cnv.in$end, cnv.in$CNV)
 #### any file format but need to have following information;
 #### loction(chr, start, end) genesymbol and Entrez gene ID)
 #### each row represent a gene or an exon
-gene.in <- read.delim("material/hg38_refGene_20200708.exon.txt", stringsAsFactors = F)
+gene.in <- read.delim(unz("material/hg38_refGene_20200708.exon_headers.zip", "hg38_refGene_20200708.exon_headers.tsv"), stringsAsFactors = F)
 genes <- GeneAnnotation(gene.in$entrezid, gene.in$chr, gene.in$start, gene.in$end, gene.in$genesymbol)
 
 #### get gene sets matrix ####
