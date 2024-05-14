@@ -40,7 +40,7 @@ readGeneset <- function(pathfile, sep="\t", header=T){
 #' @param type a vector of type of CNVs i.e. c("Loss", "Gain", "Loss", "Loss")
 #' @keywords Entrez id
 #' @export
-CNVSet <- function(sample, chr, start, end, type = "-"){
+CNVSet <- function(sample, chr, start, end, type = "CNVs"){
   if(length(type) == 1){
     message("found only one type of CNVs")
     if(sd(c(length(sample), length(chr), length(start), length(end))) != 0){
