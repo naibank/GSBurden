@@ -141,9 +141,9 @@ getCNVGSMatrix <- function(cnv.table, annotation.table, geneset){
       dt.out[, names(geneset)] <- 0
     }
     
-    if(length(cnvtypes) > 1){
+    #if(length(cnvtypes) > 1){
       names(dt.out)[-1] <- paste(names(dt.out)[-1], cnvtype, sep="_")
-    }
+    #}
     
     if(nrow(all.out) == 0){
       all.out <- dt.out
