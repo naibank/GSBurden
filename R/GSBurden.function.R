@@ -1142,5 +1142,5 @@ mergeLoci <- function(test.table, pvalue.column){
   }
   
   message("Loci testing done!")
-  return(test.out[, c("enzid", "chr", "start", "end", "gene.start", "gene.end", "gsymbol", "type", "coefficient", "sampleid", "pvalue", "stderr", "testval", "waldp")
+  return(test.out[, c("enzid", "chr", "start", "end", "gene.start", "gene.end", "gsymbol", "type", "coefficient", "sampleid", "pvalue", "stderr", "testval", "waldp")])
 }
