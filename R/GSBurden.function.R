@@ -1114,9 +1114,9 @@ mergeLoci <- function(test.table, pvalue.column){
             sampleid <- paste(unique(strsplit(paste(test.out$sampleid[olap.rec$queryHits], test.out$sampleid[olap.rec$subjectHits],sep=","),",")[[1]]), collapse = ",")
             pvalue <- which.min(test.out$pvalue[c(olap.rec$queryHits, olap.rec$subjectHits)])
             coefficient <- test.out$coefficient[c(olap.rec$queryHits, olap.rec$subjectHits)][which.min(test.out$pvalue[c(olap.rec$queryHits, olap.rec$subjectHits)])]
-            stderr <- test.out$coefficient[c(olap.rec$queryHits, olap.rec$subjectHits)][which.min(test.out$pvalue[c(olap.rec$queryHits, olap.rec$subjectHits)])]
-            testval <- test.out$coefficient[c(olap.rec$queryHits, olap.rec$subjectHits)][which.min(test.out$pvalue[c(olap.rec$queryHits, olap.rec$subjectHits)])]
-            waldp <- test.out$coefficient[c(olap.rec$queryHits, olap.rec$subjectHits)][which.min(test.out$pvalue[c(olap.rec$queryHits, olap.rec$subjectHits)])]
+            stderr <- test.out$stderr[c(olap.rec$queryHits, olap.rec$subjectHits)][which.min(test.out$pvalue[c(olap.rec$queryHits, olap.rec$subjectHits)])]
+            testval <- test.out$testval[c(olap.rec$queryHits, olap.rec$subjectHits)][which.min(test.out$pvalue[c(olap.rec$queryHits, olap.rec$subjectHits)])]
+            waldp <- test.out$waldp[c(olap.rec$queryHits, olap.rec$subjectHits)][which.min(test.out$pvalue[c(olap.rec$queryHits, olap.rec$subjectHits)])]
             pvalue <- min(test.out$pvalue[c(olap.rec$queryHits, olap.rec$subjectHits)])
             
             merge.test <- data.frame(enzid, chr, start, end, gene.start, gene.end, gsymbol, type, coefficient, sampleid, pvalue, stderr,
@@ -1142,5 +1142,5 @@ mergeLoci <- function(test.table, pvalue.column){
   }
   
   message("Loci testing done!")
-  return(test.out[, c("emzid", "chr", "start", "end", "gene.start", "gene.end", "gsymbol", "type", "coefficient", "sampleid", "pvalue", "stderr", "testval", "waldp")
+  return(test.out[, c("enzid", "chr", "start", "end", "gene.start", "gene.end", "gsymbol", "type", "coefficient", "sampleid", "pvalue", "stderr", "testval", "waldp")
 }
