@@ -91,7 +91,7 @@ getGenesetCount <- function(enzid, geneset){
 #' @keywords GSBurden
 #' @export
 getGenesetList <- function(enzid, geneset){
-  gs.sum <- sapply(sapply(geneset, is.element, enzid), sum)
+  gs.sum <- sapply(lapply(geneset, is.element, enzid), sum)
   
   return(paste(names(gs.sum)[gs.sum > 0], collapse = ";"))
 }
