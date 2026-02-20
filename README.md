@@ -8,7 +8,7 @@ The analysis can be done as demonstrated in example.R
 
 # Installation
 1. GSBurden requires R version 3.3 or later
-2. GSBurden requires GenomicRanges (>= 1.30.3), BiasedUrn (>= 1.07), MASS (>= 7.3-49), ordinal (>= 2018.8-25), fastmatch (1.1-8)
+2. GSBurden requires GenomicRanges (>= 1.30.3), BiasedUrn (>= 1.07), MASS (>= 7.3-49), ordinal (>= 2018.8-25), fastmatch (1.1-8), speedglm (0.3-5)
 3. Install the package through R script as below 
 
 devtools::install_github("naibank/GSBurden")
