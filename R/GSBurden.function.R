@@ -81,7 +81,9 @@ GeneAnnotation <- function(enzid, chr, start, end, gsymbol = "-"){
 #' @keywords GSBurden
 #' @export
 getGenesetCount <- function(enzid, geneset){
-  return(sapply(lapply(geneset, is.element, enzid), sum))
+  results <- sapply(geneset, function(gs) sum(!is.na(fastmatch::fmatch(gs, enzid))))
+  return(results)
+  #return(sapply(lapply(geneset, is.element, enzid), sum))
 }
 
 #'
